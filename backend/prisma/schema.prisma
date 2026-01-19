@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password_hash String
+  full_name     String?  // nullable 
+  role          String
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+}
+
+model Package {
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  price         Decimal
+  duration_days Int
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+
+  subscriptions Subscription[] // for querying, fetching the subscription from package, for JOIN 
+}
+
+
+model Member {
+  id            String   @id @default(uuid())
+  full_name     String
+  phone         String?
+  email         String?
+  gender        String?
+  date_of_birth DateTime?
+  status        String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  subscriptions Subscription[]
+  checkins      Checkin[]
+  bookings      Booking[]
+}
+
+
+model Subscription {
+  id          String   @id @default(uuid())
+  member_id   String
+  package_id  String
+  start_date  DateTime
+  end_date    DateTime
+  status      String
+  created_at  DateTime @default(now())
+
+  member  Member  @relation(fields: [member_id], references: [id])
+  package Package @relation(fields: [package_id], references: [id])
+
+  @@index([member_id]) // indexing fk for faster lookups WHERE member_id = ... AND package_id = ...
+  @@index([package_id]) // @@: table-level, @: field-level -> composite indexes 
+}
+
+model Checkin {
+  id           String   @id @default(uuid())
+  member_id    String
+  checkin_time DateTime
+  source       String?
+
+  member Member @relation(fields: [member_id], references: [id])
+
+  @@index([member_id])
+}
+
+model Class {
+  id            String   @id @default(uuid())
+  name          String
+  coach_name    String? 
+  schedule_time DateTime?
+  capacity      Int
+  created_at    DateTime @default(now())
+
+  bookings Booking[]
+}
+
+model Booking {
+  id         String   @id @default(uuid())
+  class_id  String
+  member_id String
+  status     String
+  created_at DateTime @default(now())
+
+  member Member @relation(fields: [member_id], references: [id])
+  class  Class  @relation(fields: [class_id], references: [id])
+
+  @@index([member_id])
+  @@index([class_id])
+}
+
