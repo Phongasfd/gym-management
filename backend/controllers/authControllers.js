@@ -83,3 +83,35 @@ const logOut = (req, res) => {
   res.status(200).json({ msg: 'Logged out successfully' });
 };
 
+const googleSuccess = async (req, res) => {
+  const profile = req.user;
+
+  const email = profile.emails[0].value;
+  const full_name = profile.displayName;
+  const date_of_birth = null;
+  const gender = null;
+  const phone = null;
+  
+  if(!date_of_birth || !gender || !phone){
+    return res.redirect("/complete-profile");
+  }
+
+  let member = await prisma.member.findUnique({
+    where: { email }
+  });
+
+  if(!member){
+    member = await prisma.member.create({
+      data: {
+        full_name,
+        email,
+        date_of_birth,
+        gender,
+        phone,
+      }
+    });
+  }else {
+    res.status(400).json({ msg: 'Member already exists. Please log in.' });
+  }
+
+};
