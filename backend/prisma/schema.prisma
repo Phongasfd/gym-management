@@ -41,11 +41,11 @@ model Package {
 model Member {
   id            String   @id @default(uuid())
   full_name     String
-  phone         String?
-  email         String?
-  gender        String?
-  date_of_birth DateTime?
-  status        String?
+  phone         String
+  email         String
+  gender        String
+  date_of_birth DateTime
+  password_hash String
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
