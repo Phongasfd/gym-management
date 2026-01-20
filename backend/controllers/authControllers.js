@@ -86,32 +86,157 @@ const logOut = (req, res) => {
 const googleSuccess = async (req, res) => {
   const profile = req.user;
 
-  const email = profile.emails[0].value;
+  const googleId = profile.id;
+  const email = profile.emails?.[0]?.value || null;
   const full_name = profile.displayName;
-  const date_of_birth = null;
-  const gender = null;
-  const phone = null;
   
-  if(!date_of_birth || !gender || !phone){
-    return res.redirect("/complete-profile");
-  }
-
-  let member = await prisma.member.findUnique({
-    where: { email }
+  let member = await prisma.member.findFirst({
+    where: {
+      OR: [
+        { googleId },
+        email ? { email } : undefined
+      ].filter(Boolean)
+    }
   });
 
-  if(!member){
+  if (!member) {
     member = await prisma.member.create({
       data: {
         full_name,
         email,
-        date_of_birth,
-        gender,
-        phone,
+        googleId,
+        date_of_birth: null,
+        gender: null,
+        phone: null,
+        isProfileComplete: false
       }
     });
-  }else {
-    res.status(400).json({ msg: 'Member already exists. Please log in.' });
+  } else if (!member.googleId) {
+    member = await prisma.member.update({
+      where: { id: member.id },
+      data: { googleId }
+    });
   }
 
+  const isComplete =
+  member.date_of_birth &&
+  member.gender &&
+  member.phone;
+
+if (!isComplete) {
+  const token = jwt.sign(
+    {
+      userId: member.id,
+      userType: "member",
+      needCompleteProfile: true
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "15m" }
+  );
+
+  res.cookie("access_token", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax"
+  });
+
+  return res.redirect("http://localhost:5173/complete-profile");
+}
+
+const token = jwt.sign(
+  {
+    userId: member.id,
+    userType: "member",
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: "7d" }
+);
+
+res.cookie("access_token", token, {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax"
+});
+
+return res.redirect("http://localhost:5173");
+
+};
+
+const facebookSuccess = async (req, res) => {
+  const profile = req.user;
+
+  const facebookId = profile.id;
+  const full_name = profile.displayName;
+  
+  let member = await prisma.member.findUnique({
+    where: {
+      facebookId
+    }
+  });
+  
+
+  if (!member) {
+    member = await prisma.member.create({
+      data: {
+        full_name,
+        email: null,
+        facebookId,
+        date_of_birth: null,
+        gender: null,
+        phone: null,
+        isProfileComplete: false
+      }
+    });
+  }
+
+  const isComplete =
+  member.date_of_birth &&
+  member.gender &&
+  member.phone;
+
+if (!isComplete) {
+  const token = jwt.sign(
+    {
+      userId: member.id,
+      userType: "member",
+      needCompleteProfile: true
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "15m" }
+  );
+
+  res.cookie("access_token", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax"
+  });
+
+  return res.redirect("http://localhost:5173/complete-profile");
+}
+
+const token = jwt.sign(
+  {
+    userId: member.id,
+    userType: "member",
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: "7d" }
+);
+
+res.cookie("access_token", token, {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax"
+});
+
+return res.redirect("http://localhost:5173");
+};
+
+module.exports = {
+  memberRegister,
+  memberLogin,
+  staffLogin,
+  logOut,
+  googleSuccess,
+  facebookSuccess
 };
