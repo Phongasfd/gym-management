@@ -32,6 +32,12 @@ app.get('/', (req, res) => {
     res.send('Gym Management System Backend is running');
 });
 
+const auth = rquire('./routes/authRoutes');
+app.use('/api/auth', auth);
+
+
+
+
 const PORT = process.env.PORT || 3000; // for deployment
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
