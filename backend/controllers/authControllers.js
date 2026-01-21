@@ -53,7 +53,7 @@ const memberLogin = async (req, res) => {
 const staffLogin = async (req, res) => {
   const { email, password } = req.body;
 
-  const staff = await prisma.staff.findUnique({
+  const staff = await prisma.user.findUnique({
     where: { email }
   }); 
   if (!staff) {
@@ -72,6 +72,20 @@ const staffLogin = async (req, res) => {
   });
   res.status(200).json({ msg: 'Login successful', user: { id: staff.id, full_name: staff.full_name, email: staff.email, role: staff.role } });  
 
+};
+
+const getStaff = async (req, res) => {
+  // authMiddleware already assign req.user
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.user.id },
+    select: {
+      id: true,
+      email: true,
+      full_name: true,
+      role: true
+    }
+  });
+  res.status(200).json({ user });
 };
 
 const logOut = (req, res) => {
@@ -237,6 +251,7 @@ module.exports = {
   memberLogin,
   staffLogin,
   logOut,
+  getStaff,
   googleSuccess,
   facebookSuccess
 };

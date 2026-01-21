@@ -1,6 +1,6 @@
 import './HeaderBar.css'
 import { useLocation } from 'react-router-dom'
-import useAuth from '../../context/AuthContext.jsx' 
+import { useAuth } from '../../context/AuthContext.jsx' 
 import { useNavigate } from 'react-router-dom';
 
 const titles = {
@@ -35,7 +35,7 @@ function HeaderBar(){
                 <div className="user-role">{user.role}</div>
               </div>
             </div>
-            <button onclick={() => {
+            <button onClick={() => {
               setUser(null);
               logout();
             }} className="btn btn-logout">Logout</button>

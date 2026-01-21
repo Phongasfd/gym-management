@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import axios from 'axios';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 
 
@@ -76,19 +76,19 @@ function Login(){
         {/* <!-- Login Form --> */}
         <form>
             <div className="form-group">
-                <label for="email" className="form-label">Email Address</label>
+                <label htmlFor="email" className="form-label">Email Address</label>
                 <input type="email" id="email" className="form-control" placeholder="admin@gympro.com" 
                 value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
 
             <div className="form-group">
-                <label for="password" className="form-label">Password</label>
+                <label htmlFor="password" className="form-label">Password</label>
                 <input type="password" id="password" className="form-control" placeholder="Enter your password" 
                 value={password} onChange={e => setPassword(e.target.value)} required />
             </div>
 
             <div className="form-group">
-                <button onClick={handleLogin} type="submit" className="btn btn-primary w-100">Login to Dashboard</button>
+                <button onClick={handleLogin} type="button" className="btn btn-primary w-100">Login to Dashboard</button>
             </div>
         </form>
 
