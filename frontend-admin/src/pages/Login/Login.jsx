@@ -1,7 +1,65 @@
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
+
+
 
 function Login(){
+    const navigate = useNavigate();
+    const { setUser } = useAuth();
 
-  return (
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post('http://localhost:3000/api/auth/staff-login', 
+                { email, password }
+            );
+            if(res.status === 200){
+                setUser(res.data.user);
+                navigate("/dashboard");
+            }
+        } catch(err){
+            if(err.response){
+                setError(err.response.data.message);
+            }else{
+                setError("Server error");
+            }
+        }
+    };
+
+    const handleGoogle = async (e) => {
+        e.preventDefault();
+        try {
+            window.location.href = 'http://localhost:3000/api/auth/google';
+        } catch(err){
+            if(err.response){
+                setError(err.response.data.msg);
+            }else {
+                setError("Server error");
+            }
+        }
+    };
+
+    const handleFacebook = async (e) => {
+        e.preventDefault();
+        try {
+            window.location.href = 'http://localhost:3000/api/auth/facebook';
+        } catch(err){
+            if(err.response){
+                setError(err.response.data.msg);
+            }else {
+                setError("Server error");
+            }
+        }
+    };
+
+
+    return (
     <div className="login-page">
       <div className="login-card">
         <div className="login-header">
@@ -11,24 +69,26 @@ function Login(){
         </div>
 
         {/* <!-- Error Message Placeholder --> */}
-        <div className="error-message">
-            Invalid credentials. Please try again.
-        </div>
+        {error && <div className="error-message">
+            {error}
+        </div>}
 
         {/* <!-- Login Form --> */}
         <form>
             <div className="form-group">
                 <label for="email" className="form-label">Email Address</label>
-                <input type="email" id="email" className="form-control" placeholder="admin@gympro.com" required />
+                <input type="email" id="email" className="form-control" placeholder="admin@gympro.com" 
+                value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
 
             <div className="form-group">
                 <label for="password" className="form-label">Password</label>
-                <input type="password" id="password" className="form-control" placeholder="Enter your password" required />
+                <input type="password" id="password" className="form-control" placeholder="Enter your password" 
+                value={password} onChange={e => setPassword(e.target.value)} required />
             </div>
 
             <div className="form-group">
-                <button type="submit" className="btn btn-primary w-100">Login to Dashboard</button>
+                <button onClick={handleLogin} type="submit" className="btn btn-primary w-100">Login to Dashboard</button>
             </div>
         </form>
 
