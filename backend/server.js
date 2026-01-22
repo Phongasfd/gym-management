@@ -35,6 +35,9 @@ app.get('/', (req, res) => {
 const auth = require('./routes/authRoutes');
 app.use('/api/auth', auth);
 
+const staff = require('./routes/staffRoutes');
+app.use('/api/staff', staff);
+
 const PORT = process.env.PORT || 3000; // for deployment
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
