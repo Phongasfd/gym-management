@@ -29,11 +29,11 @@ CREATE TABLE "Package" (
 CREATE TABLE "Member" (
     "id" TEXT NOT NULL,
     "full_name" TEXT NOT NULL,
-    "phone" TEXT,
-    "email" TEXT,
-    "gender" TEXT,
-    "date_of_birth" TIMESTAMP(3),
-    "status" TEXT,
+    "phone" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "gender" TEXT NOT NULL,
+    "date_of_birth" TIMESTAMP(3) NOT NULL,
+    "password_hash" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
