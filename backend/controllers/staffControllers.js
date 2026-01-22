@@ -5,10 +5,14 @@ const bcrypt = require('bcryptjs');
 const updatePassword = async (req, res) => {
   try {
   const userId = req.user.staffId;
-  const { currentPassword, newPassword } = req.body;
+  const { currentPassword, newPassword, confirm } = req.body;
 
   if (!currentPassword || !newPassword) {
-    return res.status(400).json({ msg: 'Confirm password does not matched' });
+    return res.status(400).json({ msg: 'Missing required fields' });
+  }
+
+  if (newPassword !== confirm) {
+    return res.status(400).json({ msg: 'Passwords do not match' });
   }
 
   const user = await prisma.user.findUnique({

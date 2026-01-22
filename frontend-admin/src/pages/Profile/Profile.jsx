@@ -23,7 +23,8 @@ function Profile(){
         try {   
             const res = await axios.post('http://localhost:3000/api/staff/update-password', {
                 currentPassword,
-                newPassword
+                newPassword,
+                confirm
             }, {withCredentials: true});
             alert('Password updated successfully');
 
