@@ -41,7 +41,7 @@ const memberLogin = async (req, res) => {
   res.cookie('access_token', token, {
     httpOnly: true, // JS cannot access
     secure: false, // set to true in production with HTTPS
-    sameSite: 'Lax', // CSRF protection
+    sameSite: 'lax', // CSRF protection
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
 
@@ -67,7 +67,7 @@ const staffLogin = async (req, res) => {
   res.cookie('access_token', token, {
     httpOnly: true, // JS cannot access
     secure: false, // set to true in production with HTTPS
-    sameSite: 'Lax', // CSRF protection
+    sameSite: 'lax', // cookies will be sent in cross-site requests
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
   res.status(200).json({ msg: 'Login successful', user: { id: staff.id, full_name: staff.full_name, email: staff.email, role: staff.role } });  
@@ -77,7 +77,7 @@ const staffLogin = async (req, res) => {
 const getStaff = async (req, res) => {
   // authMiddleware already assign req.user
   const user = await prisma.user.findUnique({
-    where: { id: req.user.user.id },
+    where: { id: req.user.staffId },
     select: {
       id: true,
       email: true,
@@ -92,7 +92,7 @@ const logOut = (req, res) => {
   res.clearCookie('access_token', {
     httpOnly: true,
     secure: false,
-    sameSite: 'Lax'
+    sameSite: 'lax'
   });
   res.status(200).json({ msg: 'Logged out successfully' });
 };

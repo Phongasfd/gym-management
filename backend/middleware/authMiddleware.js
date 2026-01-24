@@ -16,4 +16,12 @@ async function authMiddleware(req, res, next) {
   }
 }
 
-module.exports = authMiddleware; 
+async function staffMiddleware(req, res, next){
+  if(req.user.userType !== "staff"){
+    return res.status(403).json({ message: 'Access denied' });
+  } else {
+    next();
+  }
+}
+
+module.exports = { authMiddleware, staffMiddleware }; 

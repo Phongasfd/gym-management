@@ -17,7 +17,8 @@ function Login(){
         e.preventDefault();
         try {
             const res = await axios.post('http://localhost:3000/api/auth/staff-login', 
-                { email, password }
+                { email, password },
+                { withCredentials: true }
             );
             if(res.status === 200){
                 setUser(res.data.user);
