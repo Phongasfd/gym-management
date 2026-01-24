@@ -2,7 +2,7 @@ process.env.JWT_SECRET = "test_secret";
 
 const request = require("supertest");
 const app = require("../app");
-const prisma = require("../src/prisma");
+const prisma = require("../prisma");
 const bcrypt = require("bcrypt");
 
 describe("Auth API", () => {
