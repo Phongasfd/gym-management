@@ -3,7 +3,7 @@ process.env.JWT_SECRET = "test_secret";
 const request = require("supertest");
 const app = require("../app");
 const prisma = require("../prisma");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 describe("Auth API", () => {
   test("POST /api/auth/staff-login - success", async () => {
