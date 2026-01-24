@@ -1,5 +1,19 @@
 process.env.JWT_SECRET = "test_secret";
 
+jest.mock("../prisma", () => ({
+  user: {
+    findUnique: jest.fn(),
+  },
+}));
+
+jest.mock("bcryptjs", () => ({
+  compare: jest.fn(),
+}));
+
+jest.mock("jsonwebtoken", () => ({
+  sign: jest.fn(() => "fake_token"),
+}));
+
 const request = require("supertest");
 const app = require("../app");
 const prisma = require("../prisma");
