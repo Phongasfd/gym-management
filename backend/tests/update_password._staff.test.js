@@ -19,9 +19,14 @@ const bcrypt = require("bcryptjs");
 
 // Mock auth middleware to always assign req.user
 jest.mock("../middleware/authMiddleware", () => {
-  return (req, res, next) => {
-    req.user = { staffId: "user-123" };
-    next();
+  return {
+    authMiddleware: (req, res, next) => {
+      req.user = { staffId: "user-123", userType: "staff" };
+      next();
+    },
+    staffMiddleware: (req, res, next) => {
+      next();
+    }
   };
 });
 
