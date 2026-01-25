@@ -35,5 +35,7 @@ app.get('/', (req, res) => {
 const auth = require('./routes/authRoutes');
 app.use('/api/auth', auth);
 
+const staff = require('./routes/staffRoutes');
+app.use('/api/staff', staff);
 
-module.exports = app; 
+module.exports = app;
