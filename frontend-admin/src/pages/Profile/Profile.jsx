@@ -21,7 +21,7 @@ function Profile(){
         }
 
         try {   
-            const res = await axios.post('http://localhost:3000/api/staff/update-password', {
+            const res = await axios.patch('http://localhost:3000/api/staff/update-password', {
                 currentPassword,
                 newPassword,
                 confirm
