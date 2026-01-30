@@ -10,6 +10,26 @@ jobs:
   backend-ci:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: gym_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://test:test@localhost:5432/gym_test
+      JWT_SECRET: test_secret
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,6 +49,10 @@ jobs:
         run: npm run lint
         working-directory: backend
 
-      - name: Run backend tests
-        run: npm test
+      - name: Run unit tests
+        run: npm run test:unit
+        working-directory: backend
+
+      - name: Run integration tests
+        run: npm run test:ci
         working-directory: backend

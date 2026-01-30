@@ -1,5 +1,8 @@
-require('dotenv').config({ path: __dirname + '/.env' });
-// Loads environment variables from a .env file into process.env.
+const path = require('path');
+const dotenv = require('dotenv');
+const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+dotenv.config({ path: path.join(__dirname, envFile) });
+
 
 const cors = require('cors');
 

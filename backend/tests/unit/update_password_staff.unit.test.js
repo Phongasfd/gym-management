@@ -13,8 +13,8 @@ jest.mock("bcryptjs", () => ({
 }));
 
 const request = require("supertest");
-const app = require("../app");         
-const prisma = require("../prisma");
+const app = require("../../app");         
+const prisma = require("../../prisma");
 const bcrypt = require("bcryptjs");
 
 // Mock auth middleware to always assign req.user

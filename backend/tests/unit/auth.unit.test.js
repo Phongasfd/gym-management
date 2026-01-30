@@ -15,8 +15,8 @@ jest.mock("jsonwebtoken", () => ({
 }));
 
 const request = require("supertest");
-const app = require("../app");
-const prisma = require("../prisma");
+const app = require("../../app");
+const prisma = require("../../prisma");
 const bcrypt = require("bcryptjs");
 
 describe("Auth API", () => {
