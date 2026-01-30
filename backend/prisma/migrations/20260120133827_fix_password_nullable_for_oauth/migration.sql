@@ -9,7 +9,7 @@
 
 */
 -- AlterTable
-ALTER TABLE "Member" DROP COLUMN "status",
+ALTER TABLE "Member" DROP COLUMN IF EXISTS "status",
 ADD COLUMN     "password_hash" TEXT,
 ALTER COLUMN "phone" SET NOT NULL,
 ALTER COLUMN "email" SET NOT NULL,
