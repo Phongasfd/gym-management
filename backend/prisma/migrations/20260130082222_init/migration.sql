@@ -28,12 +28,15 @@ CREATE TABLE "Package" (
 -- CreateTable
 CREATE TABLE "Member" (
     "id" TEXT NOT NULL,
+    "googleId" TEXT,
+    "facebookId" TEXT,
     "full_name" TEXT NOT NULL,
-    "phone" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "gender" TEXT NOT NULL,
-    "date_of_birth" TIMESTAMP(3) NOT NULL,
-    "password_hash" TEXT NOT NULL,
+    "phone" TEXT,
+    "email" TEXT,
+    "gender" TEXT,
+    "date_of_birth" TIMESTAMP(3),
+    "password_hash" TEXT,
+    "isProfileComplete" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -88,6 +91,12 @@ CREATE TABLE "Booking" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Member_googleId_key" ON "Member"("googleId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Member_facebookId_key" ON "Member"("facebookId");
 
 -- CreateIndex
 CREATE INDEX "Subscription_member_id_idx" ON "Subscription"("member_id");
