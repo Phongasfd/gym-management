@@ -1,6 +1,6 @@
 process.env.JWT_SECRET = "test_secret";
 
-jest.mock("../prisma", () => ({
+jest.mock("../../prisma", () => ({
   user: {
     findUnique: jest.fn(),
     update: jest.fn(),
