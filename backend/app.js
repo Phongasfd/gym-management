@@ -41,4 +41,9 @@ app.use('/api/auth', auth);
 const staff = require('./routes/staffRoutes');
 app.use('/api/staff', staff);
 
+
+
+const member = require('./routes/memberRoutes');
+app.use('/api/member', member);
+
 module.exports = app;
