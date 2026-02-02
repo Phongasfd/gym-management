@@ -41,4 +41,13 @@ app.use('/api/auth', auth);
 const staff = require('./routes/staffRoutes');
 app.use('/api/staff', staff);
 
+
+
+
+
+
+const subscription = require('./routes/subscriptionRoutes');
+app.use('/api/subscription', subscription);
+
+
 module.exports = app;
