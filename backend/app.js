@@ -41,4 +41,25 @@ app.use('/api/auth', auth);
 const staff = require('./routes/staffRoutes');
 app.use('/api/staff', staff);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const booking = require('./routes/bookingRoutes');
+app.use('/api/bookings', booking);
+
 module.exports = app;
