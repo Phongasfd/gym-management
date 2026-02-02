@@ -41,4 +41,17 @@ app.use('/api/auth', auth);
 const staff = require('./routes/staffRoutes');
 app.use('/api/staff', staff);
 
+
+
+
+
+
+
+
+
+
+
+const checkin = require('./routes/checkinRoutes');
+app.use('/api/checkins', checkin); 
+
 module.exports = app;
