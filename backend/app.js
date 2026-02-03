@@ -48,4 +48,9 @@ app.use('/api/package', packageRoutes);
 const member = require('./routes/memberRoutes');
 app.use('/api/member', member);
 
+
+const subscription = require('./routes/subscriptionRoutes');
+app.use('/api/subscription', subscription);
+
+
 module.exports = app;
