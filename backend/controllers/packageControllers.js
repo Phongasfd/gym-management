@@ -4,7 +4,7 @@ const prisma = require('../prisma');
 const createPackage = async (req, res) => {
   try {
     const { name, description, price, duration_days } = req.body;
-    const package = await prisma.package.create({
+    const newPackage = await prisma.package.create({
       data: {
         name,
         description,
@@ -12,7 +12,7 @@ const createPackage = async (req, res) => {
         duration_days
       }
     });
-    res.status(201).json(package);
+    res.status(201).json(newPackage);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -32,13 +32,13 @@ const getAllPackages = async (req, res) => {
 const getPackageById = async (req, res) => {
   try {
     const { id } = req.params;
-    const package = await prisma.package.findUnique({
+    const packages = await prisma.package.findUnique({
       where: { id: id }
     });
-    if (!package) {
+    if (!packages) {
       return res.status(404).json({ error: 'Package not found' });
     }
-    res.status(200).json(package);
+    res.status(200).json(packages);
 
   }catch (error) {
     res.status(500).json({ error: error.message });
