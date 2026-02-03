@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllBookings, getBookingById, createBooking, updateBooking } = require('../controllers/classControllers');
+const { getAllBookings, getBookingById, createBooking, updateBooking } = require('../controllers/bookingControllers');
 const { authMiddleware, staffMiddleware } = require('../middleware/authMiddleware');
 
 // GET    /api/bookings
