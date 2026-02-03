@@ -53,4 +53,7 @@ const subscription = require('./routes/subscriptionRoutes');
 app.use('/api/subscription', subscription);
 
 
+const checkin = require('./routes/checkinRoutes');
+app.use('/api/checkins', checkin); 
+
 module.exports = app;
