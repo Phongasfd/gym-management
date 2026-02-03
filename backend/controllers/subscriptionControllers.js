@@ -15,7 +15,7 @@ const createSubscription = async (req, res) => {
     });
     res.status(201).json(subscription);
   } catch (error) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -27,7 +27,7 @@ const getSubscriptions = async (req, res) => {
     res.status(200).json(subscriptions);
 
   } catch (error) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -50,7 +50,7 @@ const updateSubscription = async (req, res) => {
     res.status(200).json(subscription);
     
   } catch (error) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ error: error.message });
   }
 };
 
