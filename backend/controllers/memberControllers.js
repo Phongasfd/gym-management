@@ -14,8 +14,8 @@ const createMember = async (req, res) => {
       }
     });
     res.status(201).json(member);
-  } catch (err) {
-    res.status(500).json({ msg: 'Server error' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -24,8 +24,8 @@ const getAllMembers = async (req, res) => {
   try {
     const members = await prisma.member.findMany();
     res.status(200).json(members);
-  } catch (err) {
-    res.status(500).json({ msg: 'Server error' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -37,11 +37,11 @@ const getMemberById = async (req, res) => {
       where: { id: id },
     });
     if(!member){
-      res.status(404).json({ msg: 'Member not found' });
+      return res.status(404).json({ error: 'Member not found' });
     }
     res.status(200).json(member);
   } catch (error) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -63,8 +63,8 @@ const updateMemberById = async (req, res) => {
     });
     res.status(200).json(member);
 
-  } catch (err) {
-    res.status(500).json({ msg: 'Server error' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
