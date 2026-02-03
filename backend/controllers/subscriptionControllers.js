@@ -65,7 +65,7 @@ const getSubscriptionById = async (req, res) => {
     res.status(200).json(subscription);
 
   } catch (error) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ error: error.message });
   }
 };
 
