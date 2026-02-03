@@ -60,4 +60,8 @@ app.use('/api/checkins', checkin);
 const classes = require('./routes/classRoutes');
 app.use('/api/classes', classes);
 
+
+const booking = require('./routes/bookingRoutes');
+app.use('/api/bookings', booking);
+
 module.exports = app;
