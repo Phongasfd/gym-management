@@ -56,4 +56,8 @@ app.use('/api/subscription', subscription);
 const checkin = require('./routes/checkinRoutes');
 app.use('/api/checkins', checkin); 
 
+
+const classes = require('./routes/classRoutes');
+app.use('/api/classes', classes);
+
 module.exports = app;
