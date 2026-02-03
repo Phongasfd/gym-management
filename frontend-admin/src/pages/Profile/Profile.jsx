@@ -1,6 +1,7 @@
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useState } from 'react';
-import axios from 'axios'; 
+// import axios from 'axios'; 
+import axiosClient from '../../lib/axios';
 
 
 
@@ -21,7 +22,7 @@ function Profile(){
         }
 
         try {   
-            const res = await axios.patch('http://localhost:3000/api/staff/update-password', {
+            const res = await axiosClient.patch('/staff/update-password', {
                 currentPassword,
                 newPassword,
                 confirm
