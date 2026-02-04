@@ -22,12 +22,31 @@ const createMember = async (req, res) => {
 // Get all members
 const getAllMembers = async (req, res) => {
   try {
+    const { count } = req.query;
+    const now = new Date();
+
+    if (count === 'active') {
+      const activeCount = await prisma.member.count({
+        where: {
+          subscriptions: {
+            some: {
+              start_date: { lte: now },
+              end_date: { gte: now },
+            },
+          },
+        },
+      });
+
+      return res.json({ activeCount });
+    }
+
     const members = await prisma.member.findMany();
-    res.status(200).json(members);
+    res.json(members);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Get a member by ID
 const getMemberById = async (req, res) => {
