@@ -3,6 +3,7 @@ const prisma = require('../prisma');
 // Get all bookings
 const getAllBookings = async (req, res) => {
   try {
+    
     const bookings = await prisma.booking.findMany();
     res.status(200).json(bookings);
     

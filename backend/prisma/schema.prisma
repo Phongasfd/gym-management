@@ -97,6 +97,7 @@ model Class {
   name          String
   coach_name    String? 
   schedule_time DateTime?
+  end_time     DateTime?  
   capacity      Int
   created_at    DateTime @default(now())
 

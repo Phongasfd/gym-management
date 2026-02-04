@@ -42,15 +42,15 @@ const staff = require('./routes/staffRoutes');
 app.use('/api/staff', staff);
 
 const packageRoutes = require('./routes/packageRoutes');
-app.use('/api/package', packageRoutes);
+app.use('/api/packages', packageRoutes);
 
 
 const member = require('./routes/memberRoutes');
-app.use('/api/member', member);
+app.use('/api/members', member);
 
 
 const subscription = require('./routes/subscriptionRoutes');
-app.use('/api/subscription', subscription);
+app.use('/api/subscriptions', subscription);
 
 
 const checkin = require('./routes/checkinRoutes');

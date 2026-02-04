@@ -12,6 +12,55 @@ const getAllClasses = async (req, res) => {
   }
 };
 
+const getTodayClassesStats = async (req, res) => {
+  try {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const classes = await prisma.class.findMany({
+      where: {
+        schedule_time: {
+          gte: todayStart,
+          lte: todayEnd,
+        },
+      },
+      include: {
+        _count: {
+          select: {
+            bookings: true,
+          },
+        },
+      },
+    });
+
+    const totalBookingsToday = classes.reduce(
+      (sum, cls) => sum + cls._count.bookings,
+      0
+    );
+
+    res.status(200).json({
+      count: classes.length,
+      totalBookingsToday,
+      classes: classes.map(cls => ({
+        id: cls.id,
+        name: cls.name,
+        capacity: cls.capacity,
+        schedule_time: cls.schedule_time,
+        end_time: cls.end_time,
+        coach_name: cls.coach_name,
+        bookedSlots: cls._count.bookings,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
 // Get class by ID
 const getClasById = async (req, res) => {
   try {
@@ -85,6 +134,7 @@ const deleteClass = async (req, res) => {
 
 module.exports = {
   getAllClasses,
+  getTodayClassesStats,
   getClasById,
   createClass,
   updateClass,
