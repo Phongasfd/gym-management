@@ -4,7 +4,17 @@ const prisma = require('../prisma');
 const getAllClasses = async (req, res) => {
   try {
 
-    const classes = await prisma.class.findMany();
+    const classes = await prisma.class.findMany(
+      {
+        include: {
+          _count: {
+            select: {
+              bookings: true
+            }
+          }
+        }
+      }
+    );
     res.status(200).json(classes);
     
   } catch (error) {
