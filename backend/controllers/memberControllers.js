@@ -47,6 +47,79 @@ const getAllMembers = async (req, res) => {
   }
 };
 
+const getMembersOverview = async (req, res) => {
+  try {
+  
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 10, 1);
+    const skip = (page - 1) * limit;
+
+
+    const [members, total] = await prisma.$transaction([
+      prisma.member.findMany({
+        skip,
+        take: limit,
+        orderBy: {
+          full_name: "asc",
+        },
+        select: {
+          id: true,
+          full_name: true,
+          subscriptions: {
+            where: {
+              status: "active",
+              // end_date: {
+              //   gte: new Date(),
+              // },
+            },
+            take: 1,
+            orderBy: {
+              end_date: "desc",
+            },
+            select: {
+              status: true,
+              end_date: true,
+              package: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+
+      prisma.member.count(),
+    ]);
+
+    const formattedMembers = members.map(member => {
+      const sub = member.subscriptions[0];
+
+      return {
+        id: member.id,
+        name: member.full_name,
+        packageName: sub?.package?.name ?? "—",
+        status: sub?.status ?? "none",
+        expiryDate: sub?.end_date ?? null,
+      };
+    });
+
+  
+    res.status(200).json({
+      data: formattedMembers,
+      pagination: {
+        page,
+        limit,
+        totalItems: total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 // Get a member by ID
 const getMemberById = async (req, res) => {
@@ -92,6 +165,7 @@ const updateMemberById = async (req, res) => {
 module.exports = {
   createMember,
   getAllMembers,
+  getMembersOverview,
   getMemberById,
   updateMemberById
 };
