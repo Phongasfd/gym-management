@@ -86,6 +86,16 @@ const getMembersOverview = async (req, res) => {
               },
             },
           },
+          checkins: {
+            take: 1,
+            orderBy: {
+              checkin_time: "desc",
+            },
+            select: {
+              checkin_time: true,
+              source: true
+            }
+          }
         },
       }),
 
@@ -94,6 +104,7 @@ const getMembersOverview = async (req, res) => {
 
     const formattedMembers = members.map(member => {
       const sub = member.subscriptions[0];
+      const checkin = member.checkins[0];
 
       return {
         id: member.id,
@@ -101,6 +112,10 @@ const getMembersOverview = async (req, res) => {
         packageName: sub?.package?.name ?? "—",
         status: sub?.status ?? "none",
         expiryDate: sub?.end_date ?? null,
+        lastCheckin: checkin ? {
+          time: checkin.checkin_time,
+          source: checkin.source
+        } : null
       };
     });
 

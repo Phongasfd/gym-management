@@ -1,7 +1,25 @@
+import axiosClient from '../../lib/axios';
+import { useState, useEffect } from 'react';
 
 
 function Checkins(){
-  return (
+
+    const [checkins, setCheckins] = useState([]);
+
+    useEffect(() => {
+        const fetchCheckins = async () => {
+            try {
+                const response = await axiosClient.get('/members/overview');
+                setCheckins(response.data.data);
+            } catch (error) {
+                console.error('Error fetching check-ins:', error);
+            }
+        };
+
+        fetchCheckins();
+    }, []);
+    
+    return (
     // <!-- Content Area -->
             <div className="content">
                 <div className="card mb-4">
@@ -25,62 +43,24 @@ function Checkins(){
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>Michael Johnson</td>
-                                <td>Today, 7:45 AM</td>
-                                <td>1</td>
-                                <td><span className="badge badge-active">Checked In</span></td>
-                                <td><button className="btn btn-secondary btn-small">Details</button></td>
-                            </tr>
-                            <tr>
-                                <td>Sarah Williams</td>
-                                <td>Today, 8:30 AM</td>
-                                <td>1</td>
-                                <td><span className="badge badge-active">Checked In</span></td>
-                                <td><button className="btn btn-secondary btn-small">Details</button></td>
-                            </tr>
-                            <tr>
-                                <td>Robert Chen</td>
-                                <td>Yesterday, 6:15 PM</td>
-                                <td>0</td>
-                                <td><span className="badge badge-pending">Not Today</span></td>
-                                <td><button className="btn btn-primary btn-small">Check-in</button></td>
-                            </tr>
-                            <tr>
-                                <td>Jennifer Davis</td>
-                                <td>Today, 9:00 AM</td>
-                                <td>1</td>
-                                <td><span className="badge badge-active">Checked In</span></td>
-                                <td><button className="btn btn-secondary btn-small">Details</button></td>
-                            </tr>
-                            <tr>
-                                <td>David Miller</td>
-                                <td>2 days ago</td>
-                                <td>0</td>
-                                <td><span className="badge badge-expired">Expired</span></td>
-                                <td><button className="btn btn-secondary btn-small">Details</button></td>
-                            </tr>
-                            <tr>
-                                <td>Emma Wilson</td>
-                                <td>Today, 5:30 PM</td>
-                                <td>1</td>
-                                <td><span className="badge badge-active">Checked In</span></td>
-                                <td><button className="btn btn-secondary btn-small">Details</button></td>
-                            </tr>
-                            <tr>
-                                <td>James Brown</td>
-                                <td>Today, 10:00 AM</td>
-                                <td>1</td>
-                                <td><span className="badge badge-active">Checked In</span></td>
-                                <td><button className="btn btn-secondary btn-small">Details</button></td>
-                            </tr>
-                            <tr>
-                                <td>Patricia Taylor</td>
-                                <td>Yesterday, 4:45 PM</td>
-                                <td>0</td>
-                                <td><span className="badge badge-pending">Not Today</span></td>
-                                <td><button className="btn btn-primary btn-small">Check-in</button></td>
-                            </tr>
+                            {checkins.map((member) => (
+                                <tr key={member.id}>
+                                    <td>{member.name}</td>
+                                    <td>{member.lastCheckin ? new Date(member.lastCheckin.time).toLocaleString() : 'No Check-ins'}</td>
+                                    <td>{member.lastCheckin && new Date(member.lastCheckin.time).toDateString() === new Date().toDateString() ? 1 : 0}</td>
+                                    <td>{member.lastCheckin && new Date(member.lastCheckin.time).toDateString() === new Date().toDateString() ?
+                                        <span className="badge badge-active">Checked In</span> :
+                                        <span className="badge badge-pending">Not Today</span>
+                                    }</td>
+                                    <td>
+                                        {member.lastCheckin && new Date(member.lastCheckin.time).toDateString() === new Date().toDateString() ?
+                                            <button className="btn btn-secondary btn-small">Details</button> :
+                                            <button className="btn btn-primary btn-small">Check-in</button>
+                                        }   
+                                    </td>
+                                </tr>
+                            ))}
+                            
                         </tbody>
                     </table>
                 </div>
