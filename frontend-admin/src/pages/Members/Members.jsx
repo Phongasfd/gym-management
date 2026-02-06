@@ -1,8 +1,11 @@
 import axiosClient from '../../lib/axios';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Members(){
     
+    const navigate = useNavigate();
+
     const [members, setMembers] = useState([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -26,7 +29,7 @@ function Members(){
         <div className="content">
           <div className="actions-row">
             <h2>All Members</h2>
-            <button className="btn btn-primary">Add New Member</button>
+            <button className="btn btn-primary" onClick={() => navigate('/members/add')}>Add New Member</button>
           </div>
     
           <div className="table-container">

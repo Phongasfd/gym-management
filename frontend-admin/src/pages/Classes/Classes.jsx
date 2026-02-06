@@ -1,7 +1,9 @@
 import axiosClient from "../../lib/axios";
 import {useState, useEffect} from "react";
+import { useNavigate } from 'react-router-dom';
 
 function Classes(){
+    const navigate = useNavigate();
 
     const [classes, setClasses] = useState([]);
 
@@ -19,7 +21,7 @@ function Classes(){
     <div className="content">
         <div className="actions-row">
             <h2>Fitness Classes</h2>
-            <button className="btn btn-primary">Schedule New Class</button>
+            <button className="btn btn-primary" onClick={() => navigate('/classes/add')}>Schedule New Class</button>
         </div>
 
         <div className="table-container">

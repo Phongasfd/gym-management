@@ -1,8 +1,10 @@
 import axiosClient from "../../lib/axios";
 import { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom'
 
 
 function Packages(){
+    const navigate = useNavigate()
 
     const [packages, setPackages] = useState([]);
     
@@ -21,7 +23,7 @@ function Packages(){
     <div className="content">
                 <div className="actions-row">
                     <h2>Membership Packages</h2>
-                    <button className="btn btn-primary">Create New Package</button>
+                    <button className="btn btn-primary" onClick={() => navigate('/packages/add')}>Create New Package</button>
                 </div>
 
                 <div className="table-container">

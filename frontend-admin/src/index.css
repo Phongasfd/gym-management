@@ -487,6 +487,14 @@ p {
   font-family: "Segoe UI Symbol", sans-serif;
 }
 
+/* Form Styles */
+.form { max-width: 720px; margin-top: 16px; }
+.form-group-add { display: flex; flex-direction: column; margin-bottom: 12px; }
+.form-group-add label { font-weight: 600; margin-bottom: 6px; }
+.form-group-add input, .form-group-add select, .form-group-add textarea { padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; }
+.form-group-add textarea { min-height: 90px; resize: vertical; }
+.error { color: #b00020; margin-top: 8px; }
+
 /* Print styles */
 @media print {
   .sidebar, .header-actions {
