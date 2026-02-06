@@ -44,7 +44,7 @@ function Classes(){
                             <td>{cls.schedule_time.slice(0,10)}</td>
                             <td>{cls.capacity}</td>
                             <td>{cls._count.bookings}</td>
-                            <td><button className="btn btn-secondary btn-small">Manage</button></td>
+                            <td><button onClick={() => navigate(`/classes/${cls.id}`)} className="btn btn-secondary btn-small">Manage</button></td>
                         </tr>
                     ))}
                    

@@ -70,6 +70,32 @@ const getTodayClassesStats = async (req, res) => {
 };
 
 
+const getClassMembers = async (req, res) => {
+  try {
+    const { id } = req.params;
+  
+    const bookings = await prisma.booking.findMany({
+      where: { class_id: id },
+      include: {
+        member: {
+          select: {
+            id: true,
+            full_name: true,
+            phone: true,
+            email: true, 
+          }
+        }
+      }
+    });
+    
+    const members = bookings.map( booking => booking.member );  
+    res.status(200).json(members);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+
+};
+
 
 // Get class by ID
 const getClasById = async (req, res) => {
@@ -145,6 +171,7 @@ const deleteClass = async (req, res) => {
 module.exports = {
   getAllClasses,
   getTodayClassesStats,
+  getClassMembers,
   getClasById,
   createClass,
   updateClass,

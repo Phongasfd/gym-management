@@ -10,6 +10,7 @@ import AddMember from '../pages/Members/AddMember.jsx'
 import Packages from '../pages/Packages/Packages.jsx'
 import AddPackage from '../pages/Packages/AddPackage.jsx'
 import Profile from '../pages/Profile/Profile.jsx'
+import MemberList from '../pages/Classes/MemberList.jsx'
 
 import MainLayout from '../layouts/MainLayout.jsx'
 import AuthLayout from '../layouts/AuthLayout.jsx'
@@ -44,6 +45,7 @@ function AppRoutes(){
         <Route path="/packages"  element={<Packages />} />
         <Route path="/packages/add"  element={<AddPackage />} />
         <Route path="/profile"  element={<Profile />} />
+        <Route path="/classes/:id" element={<MemberList />} />
       </Route>
 
     </Routes>
