@@ -12,6 +12,23 @@ function Checkins(){
 
     const limit = 10;
 
+    const handleCheckIn = async (memberId) => {
+        try {
+            await axiosClient.post('/checkins', {
+                member_id: memberId,
+                checkin_time: new Date().toISOString(),
+                source: 'staff'
+            });
+            // Refresh check-ins after successful check-in
+            const response = await axiosClient.get(`/members/overview?page=${page}&limit=${limit}`);
+            setCheckins(response.data.data);
+            setTotalPages(response.data.pagination.totalPages);
+
+        } catch (error) {
+            console.error('Error during check-in:', error);
+        }
+    };
+
     const filteredCheckins = checkins.filter(member => {
         const search = searchInput.toLowerCase();
         return (
@@ -80,7 +97,7 @@ function Checkins(){
                                         <td>
                                             {member.lastCheckin && new Date(member.lastCheckin.time).toDateString() === new Date().toDateString() ?
                                                 <button className="btn btn-secondary btn-small">Details</button> :
-                                                <button className="btn btn-primary btn-small">Check-in</button>
+                                                <button onClick={() => handleCheckIn(member.id)} className="btn btn-primary btn-small">Check-in</button>
                                             }   
                                         </td>
                                     </tr>
