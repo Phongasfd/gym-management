@@ -65,6 +65,7 @@ const getMembersOverview = async (req, res) => {
         select: {
           id: true,
           full_name: true,
+          phone: true,
           subscriptions: {
             where: {
               status: "active",
@@ -109,6 +110,7 @@ const getMembersOverview = async (req, res) => {
       return {
         id: member.id,
         name: member.full_name,
+        phone: member.phone,
         packageName: sub?.package?.name ?? "—",
         status: sub?.status ?? "none",
         expiryDate: sub?.end_date ?? null,
