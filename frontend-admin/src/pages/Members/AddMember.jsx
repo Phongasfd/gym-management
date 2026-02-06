@@ -29,18 +29,33 @@ function AddMember(){
     setLoading(true);
 
     const payload = {
-      full_name,
+      full_name: name,
       email,
       phone,
       gender,
       date_of_birth,
 
-      // packageName: pkg || null,
     };
 
+    const sub = {};
+    
+    if(pkg){
+      const selectedPackage = packages.find(p => p.name === pkg);
+      if(selectedPackage){
+        const durationDays = selectedPackage.duration_days;
+        sub.package_id = selectedPackage.id;
+        sub.start_date = new Date().toISOString();
+        sub.end_date = new Date(new Date().setDate(new Date().getDate() + durationDays)).toISOString();
+        sub.status = 'active';
+      }
+    }
+
     try{
-      await axiosClient.post('/members', payload);
-      // await axiosClient.post('/subscriptions'); 
+      const mem = await axiosClient.post('/members', payload);
+      sub.member_id = mem.data.id;
+      if(pkg){
+        await axiosClient.post('/subscriptions', sub);
+      }
 
       navigate('/members');
     }catch(err){

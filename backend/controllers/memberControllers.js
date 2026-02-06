@@ -10,7 +10,7 @@ const createMember = async (req, res) => {
         phone,
         email,
         gender,
-        date_of_birth
+        date_of_birth: new Date(date_of_birth)
       }
     });
     res.status(201).json(member);
