@@ -1,6 +1,6 @@
 import './Hero.css'
 
-function Footer(){
+function Hero(){
 
   return(
     // <!-- Hero Section -->
@@ -40,4 +40,4 @@ function Footer(){
   );
 }
 
-export default Footer
+export default Hero
