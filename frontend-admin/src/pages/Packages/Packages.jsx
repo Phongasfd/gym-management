@@ -46,7 +46,7 @@ function Packages(){
                                     <td>{pkg.description}</td>
                                     <td>${pkg.price}</td>
                                     <td><span className={`badge badge-${pkg.is_active ? 'active' : 'inactive'}`}>{pkg.is_active ? 'Active' : 'Inactive'}</span></td>
-                                    <td><button className="btn btn-secondary btn-small">Edit</button></td>
+                                    <td><button onClick={() => axiosClient.delete(`/packages/${pkg.id}`)} className="btn btn-secondary btn-small">Delete</button></td>
                                 </tr>
                             ))}
                             

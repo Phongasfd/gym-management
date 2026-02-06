@@ -40,7 +40,6 @@ function Members(){
                   <th>Membership Package</th>
                   <th>Status</th>
                   <th>Expiry Date</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
     
@@ -55,11 +54,6 @@ function Members(){
                       </span>
                     </td>
                     <td>{member.expiryDate?.slice(0, 10)}</td>
-                    <td>
-                      <button className="btn btn-secondary btn-small">
-                        View
-                      </button>
-                    </td>
                   </tr>
                 ))}
               </tbody>
