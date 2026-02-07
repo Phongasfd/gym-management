@@ -1,0 +1,85 @@
+/* Programs Section */
+.programs {
+    padding: var(--spacing-xl) 0;
+    background-color: var(--white);
+}
+
+.programs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.program-card {
+    background-color: var(--light);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-light);
+    transition: all var(--transition-normal);
+}
+
+.program-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.program-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.program-title {
+    margin-bottom: 0;
+}
+
+.program-level {
+    background-color: rgba(0, 212, 170, 0.1);
+    color: var(--primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+}
+
+.program-description {
+    margin-bottom: var(--spacing-md);
+}
+
+.program-meta {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-sm);
+    color: var(--gray-dark);
+}
+
+.program-meta i {
+    margin-right: 4px;
+    color: var(--primary);
+}
+
+.program-progress {
+    margin-top: var(--spacing-md);
+}
+
+.progress-bar {
+    height: 6px;
+    background-color: var(--gray-light);
+    border-radius: 3px;
+    margin-bottom: var(--spacing-xs);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 3px;
+}
+
+.program-progress span {
+    font-size: var(--font-size-xs);
+    color: var(--gray-dark);
+}
