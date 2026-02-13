@@ -12,7 +12,7 @@ function Hero(){
                     <span className={styles["badge-dot"]}></span>
                     <span className={styles["badge-text"]}>50% OFF FIRST MONTH</span>
                 </div>
-                <h1 className={styles["hero-title"]}>Build Your <span className={styles["gradient-text"]}>Strongest</span> Body</h1>
+                <h1 className={styles["hero-title"]}>Build Your <span className="gradient-text">Strongest</span> Body</h1>
                 <p className={styles["hero-subtitle"]}>Elevate Fitness combines cutting-edge technology with expert training to deliver personalized fitness journeys. Track progress, join live classNamees, and achieve results faster.</p>
                 <div className={styles["hero-cta"]}>
                     <a href="#" className={`btn btn-primary`}>Start Free Trial</a>
