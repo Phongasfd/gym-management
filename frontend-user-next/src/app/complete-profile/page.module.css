@@ -1,0 +1,66 @@
+.container {
+  padding: 24px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.title {
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+}
+
+.description {
+  margin: 0 0 16px 0;
+  color: var(--muted-color, #555);
+}
+
+.form {
+  display: grid;
+  gap: 3rem;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+.input {
+  padding: 8px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 4px;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.textarea {
+  padding: 8px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 4px;
+  font-size: 1rem;
+  resize: vertical;
+}
+
+.button {
+  padding: 8px 16px;
+  background: var(--primary, #0a74ff);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.button[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.messageSuccess {
+  margin-top: 12px;
+  color: #0a8a0a;
+}
+
+.messageError {
+  margin-top: 12px;
+  color: #b00020;
+}
