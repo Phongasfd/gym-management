@@ -1,0 +1,81 @@
+
+:root {
+    /* Using the same luxury gym color palette */
+    --primary: #C41E3A;
+    --primary-dark: #9A1A2C;
+    --secondary: #1A1A1A;
+    --accent: #D4AF37;
+    --dark: #121212;
+    --gray-dark: #3D3D3D;
+    --gray: #7A7A7A;
+    --gray-light: #E5E5E5;
+    --light: #F8F8F8;
+    --white: #FFFFFF;
+
+    /* Spacing */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 2rem;
+    --spacing-lg: 3rem;
+    --spacing-xl: 4rem;
+    
+    /* Typography */
+    /* Fallback stack used when Next's font CSS variables are not yet present */
+    --font-fallback: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    /* Use the CSS variables provided by next/font when available, otherwise fall back */
+    --font-family: var(--font-inter, var(--font-fallback));
+    --font-family-heading: var(--font-manrope, var(--font-inter, var(--font-fallback)));
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.25rem;
+    --font-size-xl: 2rem;
+    --font-size-xxl: 3rem;
+    
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    
+    /* Shadows */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
+    
+    /* Transitions */
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.3s ease;
+    
+    /* Additional auth-specific variables */
+    --success: #10B981;
+    --error: #EF4444;
+    --info: #3B82F6;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    --gradient-gym: linear-gradient(135deg, #C41E3A, #1A1A1A, #D4AF37);
+
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+
+/* Reset and Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+body {
+  font-family: var(--font-family);
+  color: var(--dark);
+  background-color: var(--light);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
