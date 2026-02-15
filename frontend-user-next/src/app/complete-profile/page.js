@@ -44,24 +44,16 @@ export default function CompleteProfilePage() {
       <p className={styles.description}>Please fill out the fields below to complete your profile.</p>
 
       <form onSubmit={handleSubmit} className={styles.form}>
-        <div className={styles.row}>
+       
           <input
             name="firstName"
             value={form.firstName}
             onChange={handleChange}
-            placeholder="First name"
+            placeholder="Full name"
             required
             className={styles.input}
           />
-          <input
-            name="lastName"
-            value={form.lastName}
-            onChange={handleChange}
-            placeholder="Last name"
-            required
-            className={styles.input}
-          />
-        </div>
+
 
         <input
           name="phone"
@@ -84,17 +76,7 @@ export default function CompleteProfilePage() {
           <option value="">Select gender</option>
           <option value="male">Male</option>
           <option value="female">Female</option>
-          <option value="other">Other</option>
         </select>
-
-        <textarea
-          name="address"
-          value={form.address}
-          onChange={handleChange}
-          placeholder="Address"
-          rows={3}
-          className={styles.textarea}
-        />
 
         <div>
           <button type="submit" disabled={loading} className={styles.button}>

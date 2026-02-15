@@ -1,3 +1,7 @@
+"use client";  
+
+import { useState, useEffect } from 'react';
+import axiosClient from '@/lib/axios'; 
 
 function SignUp(){
 
@@ -44,6 +48,26 @@ function SignUp(){
                         <input type="email" id="signupEmail" className="form-input" placeholder="you@example.com" required />
                     </div>
 
+
+                    <div className="form-group">
+                        <label htmlFor="phone" className="form-label">Phone</label>
+                        <input type="tel" id="phone" className="form-input" required />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">Gender</label>
+                        <select className="form-input">
+                            <option value="">— Select —</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="dob" className="form-label">Date of Birth</label>
+                        <input type="date" id="dob" className="form-input" required />
+                    </div>
+
                     <div className="form-group">
                         <label htmlFor="signupPassword" className="form-label">Password</label>
                         <input type="password" id="signupPassword" className="form-input" placeholder="Create a strong password" required />
@@ -58,12 +82,6 @@ function SignUp(){
                         <input type="password" id="confirmPassword" className="form-input" placeholder="Confirm your password" required />
                     </div>
 
-                    <div className="form-group">
-                        <label className="remember-me">
-                            <input type="checkbox" className="checkbox" required />
-                            <span>I agree to receive fitness tips and updates via email</span>
-                        </label>
-                    </div>
 
                     <button type="submit" className="auth-submit">
                         Create Your Account

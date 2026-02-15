@@ -19,10 +19,6 @@
   gap: 3rem;
 }
 
-.row {
-  display: flex;
-  gap: 8px;
-}
 
 .input {
   padding: 8px;
