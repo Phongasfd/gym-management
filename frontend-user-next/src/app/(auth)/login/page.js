@@ -1,7 +1,14 @@
+"use client"; 
+
+import axiosClient from '@/lib/axios';
+import { useState } from 'react';
 
 function Login(){
+    
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
-  return(
+    return(
     <div className="auth-container">
         <div className="auth-card">
             {/* <!-- Header --> */}

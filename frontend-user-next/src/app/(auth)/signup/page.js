@@ -5,7 +5,16 @@ import axiosClient from '@/lib/axios';
 
 function SignUp(){
 
-  return(
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [gender, setGender] = useState('');
+    const [dateOfBirth, setDateOfBirth] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirm, setConfirm] = useState('');
+    
+    
+    return(
     <div className="auth-container">
         <div className="auth-card">
             {/* <!-- Header --> */}
