@@ -4,7 +4,7 @@ function Testimonials(){
 
   return(
     // <!-- Testimonials Section -->
-    <section className={styles.testimonials}>
+    <section id="testimonials" className={styles.testimonials} style={{scrollMarginTop: '80px'}}>
         <div className="container">
             <div className={styles["section-header"]}>
                 <h2 className={styles["section-title"]}>Trusted by 10,000+ Members</h2>

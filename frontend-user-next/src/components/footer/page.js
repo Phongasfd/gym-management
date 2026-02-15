@@ -4,7 +4,7 @@ function Footer(){
 
   return(
     // <!-- Footer -->
-    <footer className={styles.footer}>
+    <footer id="contact" className={styles.footer}>
         <div className="container">
             <div className={styles["footer-content"]}>
                 <div className={styles["footer-brand"]}>

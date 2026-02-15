@@ -4,7 +4,7 @@ function Features(){
 
   return(
     // <!-- Features Section -->
-    <section className={styles.features}>
+    <section id="features" className={styles.features} style={{scrollMarginTop: '80px'}}>
         <div className="container">
             <div className={styles["section-header"]}>
                 <h2 className={styles["section-title"]}>Why Choose Our Platform</h2>

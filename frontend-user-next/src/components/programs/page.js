@@ -4,7 +4,7 @@ function Programs(){
 
   return(
     // <!-- Programs Section -->
-    <section className={styles.programs}>
+    <section id="programs" className={styles.programs} style={{scrollMarginTop: '80px'}}>
         <div className="container">
             <div className={styles["section-header"]}>
                 <h2 className={styles["section-title"]}>Specialized Training Programs</h2>
