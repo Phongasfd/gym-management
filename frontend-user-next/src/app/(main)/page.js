@@ -1,5 +1,5 @@
 import Image from "next/image";
-import styles from "./page.module.css";
+import Header from "@/components/header/page";
 import Hero from "@/components/hero/page";
 import Features from "@/components/features/page";
 import Programs from "@/components/programs/page";
@@ -10,6 +10,7 @@ import Footer from "@/components/footer/page";
 export default function Home() {
   return (
     <>
+      <Header />
       <Hero />
       <Features />
       <Programs />

@@ -1,4 +1,4 @@
-import '@/styles/auth.module.css';
+
 
 function SignUp(){
 
@@ -49,17 +49,17 @@ function SignUp(){
                 {/* <!-- Signup Form --> */}
                 <form className="auth-form" action="#">
                     <div className="form-group">
-                        <label for="fullName" className="form-label">Full Name</label>
+                        <label htmlFor="fullName" className="form-label">Full Name</label>
                         <input type="text" id="fullName" className="form-input" placeholder="Enter your full name" required />
                     </div>
 
                     <div className="form-group">
-                        <label for="signupEmail" className="form-label">Email Address</label>
+                        <label htmlFor="signupEmail" className="form-label">Email Address</label>
                         <input type="email" id="signupEmail" className="form-input" placeholder="you@example.com" required />
                     </div>
 
                     <div className="form-group">
-                        <label for="signupPassword" className="form-label">Password</label>
+                        <label htmlFor="signupPassword" className="form-label">Password</label>
                         <input type="password" id="signupPassword" className="form-input" placeholder="Create a strong password" required />
                         <div className="form-error">
                             <i className="fas fa-exclamation-circle"></i>
@@ -68,7 +68,7 @@ function SignUp(){
                     </div>
 
                     <div className="form-group">
-                        <label for="confirmPassword" className="form-label">Confirm Password</label>
+                        <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
                         <input type="password" id="confirmPassword" className="form-input" placeholder="Confirm your password" required />
                     </div>
 
@@ -82,7 +82,7 @@ function SignUp(){
                     <div className="form-group">
                         <label className="remember-me">
                             <input type="checkbox" className="checkbox" required />
-                            <span>I accept the <a href="#" style="color: var(--primary);">Terms of Service</a> and <a href="#" style="color: var(--primary);">Privacy Policy</a></span>
+                            <span>I accept the <a href="#">Terms of Service</a> and <a>Privacy Policy</a></span>
                         </label>
                     </div>
 
