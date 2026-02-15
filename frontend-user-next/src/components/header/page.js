@@ -18,7 +18,7 @@ function Header(){
                       <span className={styles["menu-line"]}></span>
                   </label>
                   
-                  <ul className="nav-links">
+                  <ul className={styles["nav-links"]}>
                       <li><a href="#" className={`${styles["nav-link"]} ${styles.active}`}>Home</a></li>
                       <li><a href="#" className={styles["nav-link"]}>Programs</a></li>
                       <li><a href="#" className={styles["nav-link"]}>Pricing</a></li>
