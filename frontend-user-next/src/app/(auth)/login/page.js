@@ -6,7 +6,7 @@ function Login(){
         <div className="auth-card">
             {/* <!-- Header --> */}
             <div className="auth-header">
-                <a href="index.html" className="auth-logo">
+                <a href="" className="auth-logo">
                     <span className="auth-logo-icon">💪</span>
                     <span className="auth-logo-text">ELEVATE</span>
                 </a>
@@ -19,17 +19,9 @@ function Login(){
                 {/* <!-- OAuth Section --> */}
                 <div className="oauth-section">
                     <div className="oauth-buttons">
-                        <a href="#" className="oauth-btn google">
+                        <a href="http://localhost:3000/api/auth/google" className="oauth-btn google">
                             <i className="fab fa-google oauth-icon"></i>
                             <span>Continue with Google</span>
-                        </a>
-                        <a href="#" className="oauth-btn facebook">
-                            <i className="fab fa-facebook-f oauth-icon"></i>
-                            <span>Continue with Facebook</span>
-                        </a>
-                        <a href="#" className="oauth-btn apple">
-                            <i className="fab fa-apple oauth-icon"></i>
-                            <span>Continue with Apple</span>
                         </a>
                     </div>
                 </div>
@@ -37,12 +29,6 @@ function Login(){
                 {/* <!-- Divider --> */}
                 <div className="divider">
                     <span className="divider-text">Or continue with email</span>
-                </div>
-
-                {/* <!-- Success/Error Messages --> */}
-                <div className="message info">
-                    <i className="fas fa-info-circle message-icon"></i>
-                    <div>Demo login: Use any email/password combination</div>
                 </div>
 
                 {/* <!-- Login Form --> */}
@@ -59,7 +45,7 @@ function Login(){
 
                     <div className="form-options">
                         <label className="remember-me">
-                            <input type="checkbox" className="checkbox" checked />
+                            <input type="checkbox" className="checkbox"  />
                             <span>Remember me</span>
                         </label>
                         <a href="#" className="forgot-password">Forgot password?</a>
@@ -76,24 +62,8 @@ function Login(){
                     <a href="/signup" className="auth-link">Create an account</a>
                 </div>
 
-                {/* <!-- Terms --> */}
-                <div className="auth-terms">
-                    By continuing, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
-                </div>
             </div>
 
-            {/* <!-- Footer --> */}
-            <div className="auth-footer">
-                <div className="auth-footer-links">
-                    <a href="index.html">Home</a>
-                    <a href="#">Help Center</a>
-                    <a href="#">Privacy</a>
-                    <a href="#">Contact</a>
-                </div>
-                <div className="auth-footer-copyright">
-                    © 2023 Elevate Fitness. All rights reserved.
-                </div>
-            </div>
         </div>
     </div>
   );
