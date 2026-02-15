@@ -12,8 +12,10 @@ const app = express();
 const cookieParser = require('cookie-parser');
 // Middleware to parse cookies from incoming requests
 
-// const passport = require('passport');
-// Authentication middleware
+const passport = require('passport');
+const { google } = require('./config/passport');
+google(passport);
+app.use(passport.initialize()); 
 
 
 
