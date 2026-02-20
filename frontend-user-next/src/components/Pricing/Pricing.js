@@ -42,7 +42,7 @@ function Pricing(){
                         <div className={styles["pricing-header"]}>
                             <h3 className={styles["pricing-title"]}>{pkg.name}</h3>
                             <div className={styles["pricing-price"]}>
-                                <span className={styles.price}>${pkg.price}</span>
+                                <span className={styles.price}>{pkg.price} VND</span>
                                 <span className={styles.period}>/{pkg.duration_days} days</span>
                             </div>
                         </div>
