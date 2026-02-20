@@ -1,6 +1,8 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import axioClient from '@/lib/axios';
 import styles from '@/styles/header.module.css';
+import {useRouter} from 'next/navigation';
 
 const navItems = [
     { id: 'hero', label: 'Home' },
@@ -12,6 +14,8 @@ const navItems = [
 
 function Header(){
     const [active, setActive] = useState('hero');
+    const [isLoggedIn, setLoggedIn] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         const sections = navItems
@@ -30,6 +34,23 @@ function Header(){
             { root: null, threshold: 0.3 }  // Lower threshold for better detection
         );
 
+        const checkAuth = async () => {
+            try {
+                const res = await axioClient.get('/auth/me');
+
+                if (res.status === 200) {
+                    setLoggedIn(true);
+                } else {
+                    setLoggedIn(false);
+                }
+            } catch {
+                setLoggedIn(false);
+            }
+            
+        };
+
+        checkAuth();
+
         sections.forEach(s => observer.observe(s));
         return () => observer.disconnect();
     }, [])
@@ -42,6 +63,15 @@ function Header(){
         setActive(id);
 
     }
+
+    async function handleLogout() {
+        await axioClient.post('/auth/logout');
+
+        setLoggedIn(false);
+        router.push('/');
+        router.refresh(); // refresh server components
+    }
+
 
     return(
         <header className={styles.header}>
@@ -69,8 +99,15 @@ function Header(){
                                                     >{item.label}</a>
                                                 </li>
                                             ))}
-                                            <li><a href="/login" className={`${styles["nav-link"]} ${styles["cta-nav"]}`}
+                                            
+                                            {isLoggedIn ? (
+                                                <li><a href="/login" className={`${styles["nav-link"]} ${styles["cta-nav"]}`}
                                                 >Login</a></li>
+                                            ) :
+                                            (
+                                                <li><a onClick={handleLogout} className={`${styles["nav-link"]} ${styles["cta-nav"]}`}
+                                                >Logout</a></li>
+                                            )}
                                     </ul>
                             </nav>
                     </div>

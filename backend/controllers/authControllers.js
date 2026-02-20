@@ -22,6 +22,49 @@ const memberRegister = async (req, res) => {
   res.status(201).json({msg : 'Member registered successfully'});
 };
 
+const memberCompleteProfile = async (req, res) => {
+  try {
+    const { fullName, phone, dob, gender } = req.body;
+    const { userId } = req.user;
+
+    await prisma.member.update({
+      where: { id: userId },
+      data: {
+        full_name: fullName,
+        phone,
+        gender,
+        date_of_birth: new Date(dob),
+        isProfileComplete: true,
+      }
+    });
+
+    res.status(200).json({ msg: 'Member Profile Completed' });
+
+  } catch (error) {
+    res.status(500).json({
+      msg: 'Failed to complete profile',
+      error: error.message
+    });
+  }
+};
+
+const getMe = async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ msg: 'Unauthorized' });
+  }
+
+  const member = await prisma.member.findUnique({
+    where: {
+      id: req.user.userId
+    }
+  });
+
+  res.status(200).json({
+    id: req.user.userId,
+    full_name: member.full_name,
+  });
+};
+
 // User-Member Login JWT
 const memberLogin = async (req, res) => {
   const { email, password } = req.body;
@@ -155,7 +198,7 @@ const googleSuccess = async (req, res) => {
       sameSite: "lax"
     });
 
-    return res.redirect("http://localhost:5173/complete-profile");
+    return res.redirect("http://localhost:3001/complete-profile");
   }
 
   const token = jwt.sign(
@@ -173,7 +216,7 @@ const googleSuccess = async (req, res) => {
     sameSite: "lax"
   });
 
-  return res.redirect("http://localhost:5173");
+  return res.redirect("http://localhost:3001");
 
 };
 
@@ -226,7 +269,7 @@ if (!isComplete) {
     sameSite: "lax"
   });
 
-  return res.redirect("http://localhost:5173/complete-profile");
+  return res.redirect("http://localhost:3001/complete-profile");
 }
 
 const token = jwt.sign(
@@ -244,11 +287,13 @@ res.cookie("access_token", token, {
   sameSite: "lax"
 });
 
-return res.redirect("http://localhost:5173");
+return res.redirect("http://localhost:3001");
 };
 
 module.exports = {
   memberRegister,
+  memberCompleteProfile, 
+  getMe, 
   memberLogin,
   staffLogin,
   logOut,

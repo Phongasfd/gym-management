@@ -10,7 +10,7 @@ export default function CompleteProfilePage() {
   const [dob, setDOB] = useState('');
   const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(null);
+
 
 
   async function handleSubmit(e) {
@@ -18,8 +18,9 @@ export default function CompleteProfilePage() {
     setLoading(true);
     setMessage(null);
     try {
-      await axios.post("/complete-profile", form);
+      await axiosClient.post("/complete-profile", {fullName, phone, dob, gender} );
       setMessage({ type: "success", text: "Profile saved successfully." });
+      window.location.href = '/'; 
     } catch (err) {
       setMessage({
         type: "error",
@@ -53,6 +54,7 @@ export default function CompleteProfilePage() {
           onChange={(e) => setPhone(e.target.value)}
           placeholder="Phone number"
           className={styles.input}
+          required
         />
 
         <input
@@ -62,9 +64,10 @@ export default function CompleteProfilePage() {
           onChange={(e) => setDOB(e.target.value)}
           placeholder="Date of birth"
           className={styles.input}
+          required
         />
 
-        <select name="gender" value={gender} onChange={(e) => setGender(e.target.value)} className={styles.input}>
+        <select required name="gender" value={gender} onChange={(e) => setGender(e.target.value)} className={styles.input}>
           <option value="">Select gender</option>
           <option value="male">Male</option>
           <option value="female">Female</option>
