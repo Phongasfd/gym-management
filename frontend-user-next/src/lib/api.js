@@ -25,7 +25,7 @@ export const signup = async (full_name, phone, email, gender, date_of_birth, pas
 // Classes API
 export const fetchClasses = async () => {
   try {
-    const response = await axiosClient.get('/classes/today');
+    const response = await axiosClient.get('/classes');
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;

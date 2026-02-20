@@ -12,7 +12,8 @@ const getAllClasses = async (req, res) => {
               bookings: true
             }
           }
-        }
+        },
+        take: 5, 
       }
     );
     res.status(200).json(classes);
