@@ -19,11 +19,18 @@ function SignUp(){
         e.preventDefault();
         setError('');
         setLoading(true);
-        
+
+        if(confirm !== password){
+            setError('Confirm password does not match');
+            setLoading(false);
+            return;
+        }
+
+
         try {
-            const result = await signup(full_name, phone, email, gender, date_of_birth, password);
+            const result = await signup(fullName, phone, email, gender, dateOfBirth, password);
             // Redirect to main page or dashboard
-            window.location.href = '/';
+            window.location.href = '/login';
         } catch (err) {
             setError(err.msg || 'Signup failed');
         } finally {
@@ -104,10 +111,12 @@ function SignUp(){
                         <label htmlFor="signupPassword" className="form-label">Password</label>
                         <input type="password" id="signupPassword" className="form-input" placeholder="Create a strong password" 
                         value={password} onChange={(e) => setPassword(e.target.value)} required />
-                        <div className="form-error">
-                            <i className="fas fa-exclamation-circle"></i>
-                            Password must be at least 8 characters
-                        </div>
+                        {password.length > 0 && password.length < 8 && (
+                            <div className="form-error">
+                                <i className="fas fa-exclamation-circle"></i>
+                                Password must be at least 8 characters
+                            </div>
+                        )}
                     </div>
 
                     <div className="form-group">

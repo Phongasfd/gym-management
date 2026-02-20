@@ -14,8 +14,9 @@ const memberRegister = async (req, res) => {
       phone,
       email,
       gender,
-      date_of_birth,
-      password_hash: hashedPassword
+      date_of_birth: new Date(date_of_birth),
+      password_hash: hashedPassword,
+      isProfileComplete: true
     }
   });
   res.status(201).json({msg : 'Member registered successfully'});
@@ -137,15 +138,33 @@ const googleSuccess = async (req, res) => {
   member.gender &&
   member.phone;
 
-if (!isComplete) {
+  if (!isComplete) {
+    const token = jwt.sign(
+      {
+        userId: member.id,
+        userType: "member",
+        needCompleteProfile: true
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    res.cookie("access_token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax"
+    });
+
+    return res.redirect("http://localhost:5173/complete-profile");
+  }
+
   const token = jwt.sign(
     {
       userId: member.id,
       userType: "member",
-      needCompleteProfile: true
     },
     process.env.JWT_SECRET,
-    { expiresIn: "15m" }
+    { expiresIn: "7d" }
   );
 
   res.cookie("access_token", token, {
@@ -154,25 +173,7 @@ if (!isComplete) {
     sameSite: "lax"
   });
 
-  return res.redirect("http://localhost:5173/complete-profile");
-}
-
-const token = jwt.sign(
-  {
-    userId: member.id,
-    userType: "member",
-  },
-  process.env.JWT_SECRET,
-  { expiresIn: "7d" }
-);
-
-res.cookie("access_token", token, {
-  httpOnly: true,
-  secure: false,
-  sameSite: "lax"
-});
-
-return res.redirect("http://localhost:5173");
+  return res.redirect("http://localhost:5173");
 
 };
 

@@ -49,7 +49,7 @@ model Member {
 
   full_name     String
   phone         String?
-  email         String?
+  email         String   @unique
   gender        String?
   date_of_birth DateTime?
   password_hash String?
