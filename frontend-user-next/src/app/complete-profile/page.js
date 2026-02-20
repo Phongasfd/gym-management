@@ -1,25 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import axios from "../../lib/axios";
+import axiosClient from "@/lib/axios";
 import styles from "./page.module.css";
 
 export default function CompleteProfilePage() {
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    phone: "",
-    dob: "",
-    gender: "",
-    address: "",
-  });
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [dob, setDOB] = useState('');
+  const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setForm((s) => ({ ...s, [name]: value }));
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -47,8 +39,8 @@ export default function CompleteProfilePage() {
        
           <input
             name="firstName"
-            value={form.firstName}
-            onChange={handleChange}
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
             placeholder="Full name"
             required
             className={styles.input}
@@ -57,8 +49,8 @@ export default function CompleteProfilePage() {
 
         <input
           name="phone"
-          value={form.phone}
-          onChange={handleChange}
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
           placeholder="Phone number"
           className={styles.input}
         />
@@ -66,13 +58,13 @@ export default function CompleteProfilePage() {
         <input
           type="date"
           name="dob"
-          value={form.dob}
-          onChange={handleChange}
+          value={dob}
+          onChange={(e) => setDOB(e.target.value)}
           placeholder="Date of birth"
           className={styles.input}
         />
 
-        <select name="gender" value={form.gender} onChange={handleChange} className={styles.input}>
+        <select name="gender" value={gender} onChange={(e) => setGender(e.target.value)} className={styles.input}>
           <option value="">Select gender</option>
           <option value="male">Male</option>
           <option value="female">Female</option>

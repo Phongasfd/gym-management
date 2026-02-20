@@ -1,7 +1,7 @@
 "use client";  
 
 import { useState, useEffect } from 'react';
-import axiosClient from '@/lib/axios'; 
+import { signup } from '@/lib/api';
 
 function SignUp(){
 
@@ -12,6 +12,24 @@ function SignUp(){
     const [dateOfBirth, setDateOfBirth] = useState('');
     const [password, setPassword] = useState('');
     const [confirm, setConfirm] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false); 
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+        
+        try {
+            const result = await signup(full_name, phone, email, gender, date_of_birth, password);
+            // Redirect to main page or dashboard
+            window.location.href = '/';
+        } catch (err) {
+            setError(err.msg || 'Signup failed');
+        } finally {
+            setLoading(false);
+        }
+    };
     
     
     return(
@@ -46,26 +64,30 @@ function SignUp(){
 
 
                 {/* <!-- Signup Form --> */}
-                <form className="auth-form" action="#">
+                <form className="auth-form" onSubmit={handleSubmit}>
+                    {error && <div className="error-message" style={{color: 'red', marginBottom: '10px'}}>{error}</div>}
                     <div className="form-group">
                         <label htmlFor="fullName" className="form-label">Full Name</label>
-                        <input type="text" id="fullName" className="form-input" placeholder="Enter your full name" required />
+                        <input type="text" id="fullName" className="form-input" placeholder="Enter your full name" 
+                        value={fullName} onChange={(e) => setFullName(e.target.value)} required />
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="signupEmail" className="form-label">Email Address</label>
-                        <input type="email" id="signupEmail" className="form-input" placeholder="you@example.com" required />
+                        <input type="email" id="signupEmail" className="form-input" placeholder="you@example.com" 
+                        value={email} onChange={(e) => setEmail(e.target.value)} required />
                     </div>
 
 
                     <div className="form-group">
                         <label htmlFor="phone" className="form-label">Phone</label>
-                        <input type="tel" id="phone" className="form-input" required />
+                        <input type="tel" id="phone" className="form-input" 
+                        value={phone} onChange={(e) => setPhone(e.target.value)} required />
                     </div>
 
                     <div className="form-group">
                         <label className="form-label">Gender</label>
-                        <select className="form-input">
+                        <select value={gender} onChange={(e) => setGender(e.target.value)} className="form-input">
                             <option value="">— Select —</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
@@ -74,12 +96,14 @@ function SignUp(){
 
                     <div className="form-group">
                         <label htmlFor="dob" className="form-label">Date of Birth</label>
-                        <input type="date" id="dob" className="form-input" required />
+                        <input type="date" id="dob" className="form-input"
+                        value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} required />
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="signupPassword" className="form-label">Password</label>
-                        <input type="password" id="signupPassword" className="form-input" placeholder="Create a strong password" required />
+                        <input type="password" id="signupPassword" className="form-input" placeholder="Create a strong password" 
+                        value={password} onChange={(e) => setPassword(e.target.value)} required />
                         <div className="form-error">
                             <i className="fas fa-exclamation-circle"></i>
                             Password must be at least 8 characters
@@ -88,12 +112,13 @@ function SignUp(){
 
                     <div className="form-group">
                         <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
-                        <input type="password" id="confirmPassword" className="form-input" placeholder="Confirm your password" required />
+                        <input type="password" id="confirmPassword" className="form-input" placeholder="Confirm your password" 
+                        value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
                     </div>
 
 
-                    <button type="submit" className="auth-submit">
-                        Create Your Account
+                    <button type="submit" className="auth-submit" disabled={loading}>
+                        {loading ? 'Creating Account...' : 'Create Your Account'}
                     </button>
                 </form>
 

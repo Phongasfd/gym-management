@@ -15,7 +15,7 @@ const cookieParser = require('cookie-parser');
 
 // Allow request from other port, server
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:3001', 'http://localhost:5173'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true // Allow cookies or auth header to be sent 
 }));

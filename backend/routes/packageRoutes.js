@@ -4,7 +4,7 @@ const {createPackage, getAllPackages, getPackageById, updatePackage, deletePacka
 const { authMiddleware, staffMiddleware } = require('../middleware/authMiddleware'); 
 
 // GET    /api/package
-router.get('/', authMiddleware, getAllPackages); 
+router.get('/', getAllPackages); 
 
 // GET    /api/package/:id
 router.get('/:id', authMiddleware, getPackageById);

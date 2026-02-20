@@ -1,6 +1,31 @@
+"use client";
+
 import styles from '@/styles/pricing.module.css';
+import { useState, useEffect } from 'react';
+import { fetchPackages } from '@/lib/api';
 
 function Pricing(){
+  const [packages, setPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadPackages = async () => {
+      try {
+        const data = await fetchPackages();
+        setPackages(data);
+      } catch (err) {
+        setError('Failed to load packages');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPackages();
+   
+  }, []);
+
+  if (loading) return <div>Loading pricing...</div>;
+  if (error) return <div>{error}</div>;
 
   return(
     // <!-- Pricing Section -->
@@ -11,61 +36,24 @@ function Pricing(){
                 <p className={styles["section-subtitle"]}>Choose the plan that fits your goals. All plans include access to our mobile app.</p>
             </div>
             <div className={styles["pricing-grid"]}>
-                <div className={styles["pricing-card"]}>
-                    <div className={styles["pricing-header"]}>
-                        <h3 className={styles["pricing-title"]}>Basic</h3>
-                        <div className={styles["pricing-price"]}>
-                            <span className={styles.price}>$29</span>
-                            <span className={styles.period}>/month</span>
+                {packages.map((pkg, index) => (
+                    <div key={pkg.id} className={`${styles["pricing-card"]} ${index === 1 ? 'featured' : ''}`}>
+                        {index === 1 && <div className={styles["pricing-badge"]}>MOST POPULAR</div>}
+                        <div className={styles["pricing-header"]}>
+                            <h3 className={styles["pricing-title"]}>{pkg.name}</h3>
+                            <div className={styles["pricing-price"]}>
+                                <span className={styles.price}>${pkg.price}</span>
+                                <span className={styles.period}>/{pkg.duration_days} days</span>
+                            </div>
                         </div>
+                        <ul className={styles["pricing-features"]}>
+                            <li><i className="fas fa-check"></i> {pkg.description}</li>
+                            <li><i className="fas fa-check"></i> Duration: {pkg.duration_days} days</li>
+                            {/* Add more features based on package */}
+                        </ul>
+                        <a href="#" className={`btn ${index === 1 ? 'btn-primary' : 'btn-outline'}`}>Get Started</a>
                     </div>
-                    <ul className={styles["pricing-features"]}>
-                        <li><i className="fas fa-check"></i> Access to 1 home facility</li>
-                        <li><i className="fas fa-check"></i> Basic equipment usage</li>
-                        <li><i className="fas fa-check"></i> Mobile app tracking</li>
-                        <li><i className="fas fa-times"></i> Live virtual classes</li>
-                        <li><i className="fas fa-times"></i> AI training plans</li>
-                        <li><i className="fas fa-times"></i> Nutrition guidance</li>
-                    </ul>
-                    <a href="#" className={`btn btn-outline`}>Get Started</a>
-                </div>
-                <div className={`${styles["pricing-card"]} featured`}>
-                    <div className={styles["pricing-badge"]}>MOST POPULAR</div>
-                    <div className={styles["pricing-header"]}>
-                        <h3 className={styles["pricing-title"]}>Pro</h3>
-                        <div className={styles["pricing-price"]}>
-                            <span className={styles.price}>$59</span>
-                            <span className={styles.period}>/month</span>
-                        </div>
-                    </div>
-                    <ul className={styles["pricing-features"]}>
-                        <li><i className="fas fa-check"></i> Access to all facilities</li>
-                        <li><i className="fas fa-check"></i> Premium equipment</li>
-                        <li><i className="fas fa-check"></i> Advanced analytics</li>
-                        <li><i className="fas fa-check"></i> Unlimited virtual classes</li>
-                        <li><i className="fas fa-check"></i> AI training plans</li>
-                        <li><i className="fas fa-times"></i> Nutrition guidance</li>
-                    </ul>
-                    <a href="#" className={`btn btn-primary`}>Start Free Trial</a>
-                </div>
-                <div className={styles["pricing-card"]}>
-                    <div className={styles["pricing-header"]}>
-                        <h3 className={styles["pricing-title"]}>Elite</h3>
-                        <div className={styles["pricing-price"]}>
-                            <span className={styles.price}>$99</span>
-                            <span className={styles.period}>/month</span>
-                        </div>
-                    </div>
-                    <ul className={styles["pricing-features"]}>
-                        <li><i className="fas fa-check"></i> All Pro features</li>
-                        <li><i className="fas fa-check"></i> 1-on-1 coaching sessions</li>
-                        <li><i className="fas fa-check"></i> Custom meal plans</li>
-                        <li><i className="fas fa-check"></i> Recovery & wellness</li>
-                        <li><i className="fas fa-check"></i> Priority booking</li>
-                        <li><i className="fas fa-check"></i> Guest passes</li>
-                    </ul>
-                    <a href="#" className={`btn btn-outline`}>Contact Sales</a>
-                </div>
+                ))}
             </div>
         </div>
     </section>

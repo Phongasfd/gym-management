@@ -1,12 +1,30 @@
 "use client"; 
 
-import axiosClient from '@/lib/axios';
+import { login } from '@/lib/api';
 import { useState } from 'react';
 
 function Login(){
     
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+        
+        try {
+            const result = await login(email, password);
+            // Redirect to main page or dashboard
+            window.location.href = '/';
+        } catch (err) {
+            setError(err.msg || 'Login failed');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return(
     <div className="auth-container">
@@ -39,15 +57,18 @@ function Login(){
                 </div>
 
                 {/* <!-- Login Form --> */}
-                <form className="auth-form" action="#">
+                <form className="auth-form" onSubmit={handleSubmit}>
+                    {error && <div className="error-message" style={{color: 'red', marginBottom: '10px'}}>{error}</div>}
                     <div className="form-group">
                         <label htmlFor="email" className="form-label">Email Address</label>
-                        <input type="email" id="email" className="form-input" placeholder="you@example.com" required />
+                        <input type="email" id="email" className="form-input" placeholder="you@example.com" 
+                        value={email} onChange={(e) => setEmail(e.target.value)} required />
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="password" className="form-label">Password</label>
-                        <input type="password" id="password" className="form-input" placeholder="Enter your password" required />
+                        <input type="password" id="password" className="form-input" placeholder="Enter your password" 
+                        value={password} onChange={(e) => setPassword(e.target.value)} required />
                     </div>
 
                     <div className="form-options">
@@ -58,8 +79,8 @@ function Login(){
                         <a href="#" className="forgot-password">Forgot password?</a>
                     </div>
 
-                    <button type="submit" className="auth-submit">
-                        Sign In to Your Account
+                    <button type="submit" className="auth-submit" disabled={loading}>
+                        {loading ? 'Signing In...' : 'Sign In to Your Account'}
                     </button>
                 </form>
 
