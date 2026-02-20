@@ -101,12 +101,13 @@ function Header(){
                                             ))}
                                             
                                             {isLoggedIn ? (
-                                                <li><a href="/login" className={`${styles["nav-link"]} ${styles["cta-nav"]}`}
-                                                >Login</a></li>
-                                            ) :
-                                            (
+                        
                                                 <li><a onClick={handleLogout} className={`${styles["nav-link"]} ${styles["cta-nav"]}`}
                                                 >Logout</a></li>
+                                            ) :
+                                            (
+                                                <li><a href="/login" className={`${styles["nav-link"]} ${styles["cta-nav"]}`}
+                                                >Login</a></li>
                                             )}
                                     </ul>
                             </nav>

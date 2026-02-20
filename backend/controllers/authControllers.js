@@ -79,7 +79,7 @@ const memberLogin = async (req, res) => {
   const isPasswordValid  = await bcrypt.compare(password, member.password_hash);
   if(!isPasswordValid) return res.status(400).json({ msg: 'Invalid password' });
 
-  const token = jwt.sign({ userType: "member", memberId: member.id}, process.env.JWT_SECRET, {expiresIn: '7d'});
+  const token = jwt.sign({ userType: "member", userId: member.id}, process.env.JWT_SECRET, {expiresIn: '7d'});
 
   // Send token in HTTP-only cookie
   res.cookie('access_token', token, {
