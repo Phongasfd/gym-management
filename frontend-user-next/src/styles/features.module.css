@@ -58,17 +58,3 @@
     margin-bottom: var(--spacing-md);
     color: var(--gray-dark);
 }
-
-.feature-link {
-    color: var(--primary);
-    font-weight: 600;
-    font-size: var(--font-size-sm);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-}
-
-.feature-link:hover {
-    color: var(--primary-dark);
-    gap: var(--spacing-sm);
-}

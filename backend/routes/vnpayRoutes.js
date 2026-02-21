@@ -3,8 +3,8 @@ const router = express.Router();
 const {authMiddleware, staffMiddleware} = require('../middleware/authMiddleware');
 const {vnPay, vnPayCheck} = require('../controllers/vnpayControllers');
 
-router.post('/create-qr', vnPay); 
-router.get('/check-payment-vnpay', vnPayCheck);
+router.post('/create-qr', authMiddleware, vnPay); 
+router.get('/check-payment-vnpay', authMiddleware, vnPayCheck);
 
 
 module.exports = router;

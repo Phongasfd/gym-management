@@ -1,0 +1,188 @@
+/* Container */
+.container {
+  max-width: 1100px;
+  margin: var(--spacing-lg) auto;
+  padding: var(--spacing-md);
+}
+
+/* Title */
+.title {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xxl);
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+  background: var(--gradient-gym);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.tabButton {
+  padding: 10px 22px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-light);
+  background: var(--white);
+  color: var(--secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.tabButton:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.active {
+  background: var(--gradient-primary);
+  color: var(--white);
+  border: none;
+}
+
+/* Card */
+.card {
+  background: var(--white);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--gray-light);
+}
+
+/* Card Title */
+.cardTitle {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-md);
+  color: var(--secondary);
+  border-left: 4px solid var(--primary);
+  padding-left: var(--spacing-sm);
+}
+
+/* Info Grid */
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.infoItem {
+  background: var(--light);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-light);
+  font-size: var(--font-size-sm);
+}
+
+/* No Data */
+.noData {
+  color: var(--gray);
+  font-style: italic;
+}
+
+/* Bookings */
+.bookingsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.bookingCard {
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-light);
+  background: var(--light);
+  transition: var(--transition-fast);
+}
+
+.bookingCard:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.bookingTitle {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-xs);
+  color: var(--secondary);
+}
+
+/* Status */
+.bookingStatus {
+  margin-left: var(--spacing-xs);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.statusConfirmed {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
+.statusPending {
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--accent);
+}
+
+.statusCancelled {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+}
+
+/* Classes Grid */
+.classesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.classCard {
+  padding: var(--spacing-md);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-light);
+  background: var(--white);
+  transition: var(--transition-normal);
+}
+
+.classCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.classTitle {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-xs);
+  color: var(--secondary);
+}
+
+.classInfo {
+  font-size: var(--font-size-sm);
+  margin-bottom: 6px;
+  color: var(--gray-dark);
+}
+
+/* Button */
+.bookButton {
+  margin-top: var(--spacing-sm);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--gradient-primary);
+  color: var(--white);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.bookButton:hover {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-sm);
+}

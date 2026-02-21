@@ -41,3 +41,48 @@ export const fetchPackages = async () => {
     throw error.response?.data || error.message;
   }
 };
+
+// VNPay API
+export const createVNPayPayment = async (amount, orderInfo) => {
+  try {
+    const response = await axiosClient.post('/vnpay/create-qr', {
+      amount,
+      orderInfo
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+// Member API
+export const getCurrentMember = async () => {
+  try {
+    const response = await axiosClient.get('/members/me');
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+// Booking API
+export const getMyBookings = async () => {
+  try {
+    const response = await axiosClient.get('/bookings/my');
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const createBooking = async (classId) => {
+  try {
+    const response = await axiosClient.post('/bookings', {
+      class_id: classId,
+      status: 'pending'
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};

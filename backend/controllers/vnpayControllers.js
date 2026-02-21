@@ -31,12 +31,47 @@ const vnPay = async (req, res) => {
 };
 
 const vnPayCheck = async (req, res) => {
+  const vnpay = new VNPay({
+    tmnCode: process.env.VNP_TMN_CODE,
+    secureSecret: process.env.VNP_HASH_SECRET,
+    hashAlgorithm: 'SHA512',
+  });
+
+  const verify = vnpay.verifyReturnUrl(req.query);
+
+  if (!verify.isVerified) {
+    return res.status(400).json({ message: 'Invalid signature' });
+  }  // verify signature 
 
   console.log(req.query);
-};
+}; // redirect to successful payment page 
+
+const vnPayIpn = async (req, res) => {
+  const vnpay = new VNPay({
+    tmnCode: process.env.VNP_TMN_CODE,
+    secureSecret: process.env.VNP_HASH_SECRET,
+    hashAlgorithm: 'SHA512',
+  });
+
+  const verify = vnpay.verifyReturnUrl(req.query);
+
+  if (!verify.isVerified) {
+    return res.status(200).json({ RspCode: '97', Message: 'Invalid signature' });
+  }
+
+  const { vnp_TxnRef, vnp_ResponseCode, vnp_Amount } = req.query;
+
+  // 1. tìm order trong DB
+  // 2. check amount có khớp không
+  // 3. nếu chưa PAID thì update
+  // 4. trả về { RspCode: '00', Message: 'Confirm Success' }
+
+  return res.status(200).json({ RspCode: '00', Message: 'Confirm Success' });
+}; // update database 
 
 
 module.exports = {
   vnPay,
-  vnPayCheck
+  vnPayCheck,
+  vnPayIpn
 };
