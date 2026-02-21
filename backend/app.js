@@ -12,7 +12,6 @@ const app = express();
 const cookieParser = require('cookie-parser');
 // Middleware to parse cookies from incoming requests
 
-
 // Allow request from other port, server
 app.use(cors({
     origin: ['http://localhost:3001', 'http://localhost:5173'],
@@ -59,5 +58,8 @@ app.use('/api/classes', classes);
 
 const booking = require('./routes/bookingRoutes');
 app.use('/api/bookings', booking);
+
+const paymentRoutes = require('./routes/vnpayRoutes');
+app.use('/api/payment', paymentRoutes); 
 
 module.exports = app;
