@@ -62,6 +62,11 @@ const getMe = async (req, res) => {
   res.status(200).json({
     id: req.user.userId,
     full_name: member.full_name,
+    email: member.email,
+    phone: member.phone,
+    date_of_birth: member.date_of_birth,
+    gender: member.gender,
+    isProfileComplete: member.isProfileComplete
   });
 };
 

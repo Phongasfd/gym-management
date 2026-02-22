@@ -45,6 +45,23 @@ const getPackageById = async (req, res) => {
   }
 };
 
+// Get a single package by ID
+const getPackageByUserId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const packages = await prisma.package.findUnique({
+      where: { id: id }
+    });
+    if (!packages) {
+      return res.status(404).json({ error: 'Package not found' });
+    }
+    res.status(200).json(packages);
+
+  }catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // Update a package
 const updatePackage = async (req, res) => {
   try {

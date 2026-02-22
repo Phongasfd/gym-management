@@ -6,7 +6,7 @@ const { authMiddleware, staffMiddleware } = require('../middleware/authMiddlewar
 // GET    /api/classes
 router.get('/', getAllClasses);
 
-router.get('/today', getTodayClassesStats);
+router.get('/today', authMiddleware, getTodayClassesStats);
 
 router.get('/:id/members', authMiddleware, staffMiddleware, getClassMembers);
 

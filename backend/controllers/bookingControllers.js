@@ -29,6 +29,24 @@ const getBookingById = async (req, res) => {
   }
 };
 
+// Get booking by ID
+const getBookingByUserId = async (req, res) => {
+  try {
+    const id = req.user.userId;
+
+    const booking = await prisma.booking.findMany({
+      where: { member_id: id }
+    });
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    res.status(200).json(booking);
+    
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // Member booking
 const createBooking = async (req, res) => {
   try {
@@ -69,6 +87,7 @@ const updateBooking = async (req, res) => {
 module.exports = {
   getAllBookings,
   getBookingById,
+  getBookingByUserId,
   createBooking,
   updateBooking
 };

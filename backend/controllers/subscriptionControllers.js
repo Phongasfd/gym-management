@@ -69,9 +69,25 @@ const getSubscriptionById = async (req, res) => {
   }
 };
 
+// Get a subscription by ID
+const getSubscriptionByUserId = async (req, res) => {
+  try {
+
+    const id = req.user.userId; 
+    const subscription = await prisma.subscription.findMany({
+      where: { member_id: id }
+    });
+    res.status(200).json(subscription);
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   createSubscription,
   getSubscriptions,
   updateSubscription,
-  getSubscriptionById
+  getSubscriptionById,
+  getSubscriptionByUserId
 };

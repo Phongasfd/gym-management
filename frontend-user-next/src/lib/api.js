@@ -23,19 +23,20 @@ export const signup = async (full_name, phone, email, gender, date_of_birth, pas
 };
 
 // Classes API
-export const fetchClasses = async () => {
+export const fetchTodayClasses = async () => {
   try {
-    const response = await axiosClient.get('/classes');
-    return response.data;
+    const response = await axiosClient.get('/classes/today');
+    return response.data.classes;
   } catch (error) {
     throw error.response?.data || error.message;
   }
 };
 
 // Packages API
-export const fetchPackages = async () => {
+export const fetchMySubscriptions = async () => {
   try {
-    const response = await axiosClient.get('/packages');
+    
+    const response = await axiosClient.get(`/subscriptions/me`);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
@@ -58,7 +59,7 @@ export const createVNPayPayment = async (amount, orderInfo) => {
 // Member API
 export const getCurrentMember = async () => {
   try {
-    const response = await axiosClient.get('/members/me');
+    const response = await axiosClient.get('/auth/me');
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
@@ -68,7 +69,7 @@ export const getCurrentMember = async () => {
 // Booking API
 export const getMyBookings = async () => {
   try {
-    const response = await axiosClient.get('/bookings/my');
+    const response = await axiosClient.get('/bookings/me');
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;

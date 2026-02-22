@@ -1,28 +1,31 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { fetchClasses, getCurrentMember, getMyBookings, createBooking } from '@/lib/api';
+import { fetchTodayClasses, fetchMySubscriptions, getCurrentMember, getMyBookings, createBooking } from '@/lib/api';
 import styles from './page.module.css';
 
 export default function MemberPage() {
   const [memberInfo, setMemberInfo] = useState(null);
   const [classes, setClasses] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('info');
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [memberData, classesData, bookingsData] = await Promise.all([
+        const [memberData, classesData, bookingsData, packageData] = await Promise.all([
           getCurrentMember(),
-          fetchClasses(),
-          getMyBookings()
+          fetchTodayClasses(),
+          getMyBookings(),
+          fetchMySubscriptions()
         ]);
 
         setMemberInfo(memberData);
         setClasses(classesData);
         setBookings(bookingsData);
+        setPackages(packageData);
       } catch (error) {
         console.error('Failed to load data:', error);
       } finally {
@@ -70,6 +73,12 @@ export default function MemberPage() {
           className={`${styles.tabButton} ${activeTab === 'classes' ? styles.active : ''}`}
         >
           Book Classes
+        </button>
+        <button
+          onClick={() => setActiveTab('packages')}
+          className={`${styles.tabButton} ${activeTab === 'packages' ? styles.active : ''}`}
+        >
+          Packages
         </button>
       </div>
 
@@ -156,6 +165,30 @@ export default function MemberPage() {
           )}
         </div>
       )}
+
+      {activeTab === 'packages' && (
+              <div className={styles.card}>
+                <h2 className={styles.cardTitle}>Packages</h2>
+                {packages.length === 0 ? (
+                  <p className={styles.noData}>No packages available.</p>
+                ) : (
+                  <div className={styles.classesGrid}>
+                    {packages.map(pkg => (
+                      <div key={pkg.id} className={styles.classCard}>
+                        <h3 className={styles.classTitle}>{pkg.name}</h3>
+                        <p className={styles.classInfo}><strong>Coach:</strong> {pkg.coach_name || 'TBD'}</p>
+                        <p className={styles.classInfo}><strong>Schedule:</strong> {pkg.schedule_time ? new Date(pkg.schedule_time).toLocaleString() : 'TBD'}</p>
+                        {pkg.end_time && <p className={styles.classInfo}><strong>End Time:</strong> {new Date(pkg.end_time).toLocaleString()}</p>}
+                        <p className={styles.classInfo}><strong>Capacity:</strong> {pkg.capacity}</p>
+                        <p className={styles.classInfo}><strong>Booked:</strong> {pkg._count?.bookings || 0}</p>
+      
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
     </div>
   );
 }
