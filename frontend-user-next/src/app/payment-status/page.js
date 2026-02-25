@@ -22,12 +22,20 @@ export default function PaymentStatus() {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/vnpay/check-payment-vnpay?${new URLSearchParams(params)}`);
         const result = await response.json();
 
-        if (response.ok && result.message === 'Payment successful') {
+
+        if (response.ok && result.status === 'active') {
           setStatus('success');
           setMessage('Your payment has been processed successfully!');
-        } else {
+        } else if (result.status === 'failed') {
           setStatus('failed');
-          setMessage('Payment verification failed. Please contact support.');
+          setMessage('Payment failed. Please try again.');
+        } else {
+          setStatus('pending');
+          setMessage('Payment is still processing. Please check back later.');
+
+          setTimeout(() => {
+            verifyPayment();
+          }, 3000);
         }
       } catch (error) {
         setStatus('error');
@@ -44,11 +52,17 @@ export default function PaymentStatus() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        {status === 'verifying' && (
+        {status === 'pending' && (
           <>
-            <div className={styles.icon}>⏳</div>
-            <h2 className={styles.title}>Verifying Payment</h2>
-            <p className={styles.message}>Please wait while we verify your payment...</p>
+            <div className={styles.icon} style={{ color: 'orange' }}>⏳</div>
+            <h2 className={styles.title}>Payment Pending</h2>
+            <p className={styles.message}>{message}</p>
+            <button 
+              onClick={() => window.location.href = '/'}
+              className={`${styles.button} ${styles.buttonDefault}`}
+            >
+              Return to Home
+            </button>
           </>
         )}
 

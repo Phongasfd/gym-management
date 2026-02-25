@@ -50,7 +50,8 @@ const getBookingByUserId = async (req, res) => {
 // Member booking
 const createBooking = async (req, res) => {
   try {
-    const { class_id, member_id, status } = req.body;
+    const { class_id, status } = req.body;
+    const member_id = req.user.userId; 
     const newBooking = await prisma.booking.create({
       data: {
         member_id,

@@ -60,6 +60,6 @@ const booking = require('./routes/bookingRoutes');
 app.use('/api/bookings', booking);
 
 const paymentRoutes = require('./routes/vnpayRoutes');
-app.use('/api/payment', paymentRoutes); 
+app.use('/api/vnpay', paymentRoutes); 
 
 module.exports = app;

@@ -69,8 +69,8 @@ model Subscription {
   id          String   @id @default(uuid())
   member_id   String
   package_id  String
-  start_date  DateTime
-  end_date    DateTime
+  start_date  DateTime?
+  end_date    DateTime? 
   status      String
   created_at  DateTime @default(now())
 

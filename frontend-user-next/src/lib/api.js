@@ -44,11 +44,10 @@ export const fetchMySubscriptions = async () => {
 };
 
 // VNPay API
-export const createVNPayPayment = async (amount, orderInfo) => {
+export const createVNPayPayment = async (packageId) => {
   try {
     const response = await axiosClient.post('/vnpay/create-qr', {
-      amount,
-      orderInfo
+      packageId
     });
     return response.data;
   } catch (error) {
@@ -80,7 +79,7 @@ export const createBooking = async (classId) => {
   try {
     const response = await axiosClient.post('/bookings', {
       class_id: classId,
-      status: 'pending'
+      status: 'active'
     });
     return response.data;
   } catch (error) {
