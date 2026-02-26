@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {authMiddleware, staffMiddleware} = require('../middleware/authMiddleware');
+const {authMiddleware} = require('../middleware/authMiddleware');
 const {vnPay, vnPayReturn, vnPayIPN} = require('../controllers/vnpayControllers');
 
 router.post('/create-qr', authMiddleware, vnPay); 

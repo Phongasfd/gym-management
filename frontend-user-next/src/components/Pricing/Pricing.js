@@ -11,7 +11,7 @@ function Pricing(){
     setPaymentLoading(pkg.id);
     try {
       const paymentUrl = await createVNPayPayment(pkg.id);
-      window.location.href = paymentUrl; // Redirect to VNPay
+      window.open(paymentUrl, "_blank", "noopener,noreferrer");
     } catch (err) {
       alert('Failed to initiate payment. Please try again.');
       console.error(err);

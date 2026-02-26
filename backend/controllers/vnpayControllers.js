@@ -1,6 +1,22 @@
 const { VNPay, ignoreLogger, ProductCode, VnpLocale, dateFormat } = require('vnpay'); 
 const prisma = require('../prisma');
 
+function restoreUUID(str) {
+  return str.replace(
+    /^(.{8})(.{4})(.{4})(.{4})(.{12})$/,
+    '$1-$2-$3-$4-$5'
+  );
+}
+
+const vnpay = new VNPay({
+  tmnCode: process.env.VNP_TMN_CODE,
+  secureSecret: process.env.VNP_HASH_SECRET,
+  vnpayHost: process.env.VNP_URL,
+  testMode: true,
+  hashAlgorithm: 'SHA512',
+  loggerFn: ignoreLogger,
+});
+
 const vnPay = async (req, res) => {
 
   const { packageId } = req.body;
@@ -22,26 +38,27 @@ const vnPay = async (req, res) => {
     }
   });
 
-  const vnpay = new VNPay({
-    tmnCode: process.env.VNP_TMN_CODE,
-    secureSecret: process.env.VNP_HASH_SECRET,
-    vnpayHost: process.env.VNP_URL,
-    testMode: true,
-    hashAlgorithm: 'SHA512',
-    loggerFn: ignoreLogger,
-  });
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1); 
+  let ipAddr =
+  req.headers['x-forwarded-for']?.split(',')[0] ||
+  req.connection?.remoteAddress ||
+  req.socket?.remoteAddress ||
+  req.ip;
+
+  // localhost ::1 → IPv4
+  if (ipAddr === '::1') {
+    ipAddr = '127.0.0.1';
+  }
 
   const vnpayResponse = await vnpay.buildPaymentUrl({
-    vnp_Amount: pkg.price * 100,
-    vnp_IpAddr: req.headers['x-forwarded-for'] || req.ip,
-    vnp_TxnRef: subscription.id, 
-    vnp_OrderInfo: `Payment for ${pkg.name}`,
+    vnp_Amount: pkg.price,
+    vnp_IpAddr: ipAddr,
+    vnp_TxnRef: `${subscription.id}`.replace(/-/g, ''),
+    vnp_OrderInfo: `Thanh toan goi tap`,
     vnp_OrderType: ProductCode.Other,
     vnp_ReturnUrl: process.env.VNP_RETURN_URL,
-    vnp_IpnUrl: process.env.VNP_IPN_URL,
     vnp_Locale: VnpLocale.VN,
     vnp_CreateDate: dateFormat(new Date()),
     vnp_ExpireDate: dateFormat(tomorrow),
@@ -51,53 +68,46 @@ const vnPay = async (req, res) => {
 };
 
 const vnPayReturn = async (req, res) => {
-  const vnpay = new VNPay({
-    tmnCode: process.env.VNP_TMN_CODE,
-    secureSecret: process.env.VNP_HASH_SECRET,
-    hashAlgorithm: 'SHA512'
-  });
+  // Determine front‑end base URL once (can be overridden via env)
+  const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
 
   const verify = vnpay.verifyReturnUrl(req.query);
 
   if (!verify.isVerified) {
-    return res.status(400).json({ status: "INVALID_SIGNATURE" });
+    // signature problems are treated as failure
+    return res.redirect(`${FRONTEND_URL}/payment-failed`);
+  }
+
+  if (!verify.isSuccess) {
+    return res.redirect(`${FRONTEND_URL}/payment-failed`);
   }
 
   const { vnp_TxnRef, vnp_ResponseCode } = req.query;
 
-  if(!vnp_TxnRef){
-    return res.status(400).json({ status: "INVALID" });
+  if (!vnp_TxnRef) {
+    return res.redirect(`${FRONTEND_URL}/payment-failed`);
   }
 
   if (vnp_ResponseCode !== '00') {
-    return res.json({
-      status: 'failed',
-      message: 'Payment failed'
-    });
+    return res.redirect(`${FRONTEND_URL}/payment-failed`);
   }
+
+  const originalId = restoreUUID(vnp_TxnRef);
 
   const subscription = await prisma.subscription.findUnique({
-    where: {id: vnp_TxnRef}
+    where: { id: originalId }
   });
 
-  if(!subscription){
-    return res.status(404).json({ status: "NOT_FOUND" });
+  if (!subscription) {
+    return res.redirect(`${FRONTEND_URL}/payment-failed`);
   }
 
-  return res.json({
-    status: subscription.status,
-    message: subscription.status === 'active' ? 'Payment successful' : 'Payment pending or failed'
-  });
+  return res.redirect(`${FRONTEND_URL}/payment-success`);
 }; 
 
 const vnPayIPN = async (req, res) => {
-  const vnpay = new VNPay({
-    tmnCode: process.env.VNP_TMN_CODE,
-    secureSecret: process.env.VNP_HASH_SECRET,
-    hashAlgorithm: 'SHA512'
-  });
 
-  const verify = vnpay.verifyIpnUrl(req.query);
+  const verify = vnpay.verifyIpnCall(req.query);
 
   if (!verify.isVerified) {
     return res.json({ RspCode: '97', Message: 'Invalid signature' });
@@ -105,8 +115,10 @@ const vnPayIPN = async (req, res) => {
 
   const { vnp_TxnRef, vnp_ResponseCode, vnp_Amount } = req.query;
 
+  const originalId = restoreUUID(vnp_TxnRef);
+
   const subscription = await prisma.subscription.findUnique({
-    where: { id: vnp_TxnRef },
+    where: { id: originalId },
     include: { package: true }
   });
 
@@ -119,7 +131,7 @@ const vnPayIPN = async (req, res) => {
   }
 
   // Check amount
-  if (subscription.package.price * 100 !== Number(vnp_Amount)) {
+  if (subscription.package.price !== Number(vnp_Amount)) {
     return res.json({ RspCode: '04', Message: 'Invalid amount' });
   }
 
@@ -140,8 +152,11 @@ const vnPayIPN = async (req, res) => {
     }); 
 
   } else {
-    await prisma.subscription.update({
-      where: { id: subscription.id },
+      await prisma.subscription.updateMany({
+      where: {
+        id: subscription.id,
+        status: 'pending'
+      },
       data: { status: 'failed' }
     });
   }
