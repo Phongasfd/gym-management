@@ -1,5 +1,6 @@
 const { VNPay, ignoreLogger, ProductCode, VnpLocale, dateFormat } = require('vnpay'); 
 const prisma = require('../prisma');
+const logger = require('../utils/logger');
 
 function restoreUUID(str) {
   return str.replace(
@@ -52,10 +53,20 @@ const vnPay = async (req, res) => {
     ipAddr = '127.0.0.1';
   }
 
+  const orderId = subscription.id;
+  const amount = pkg.price;
+
+  logger.info('Creating payment', {
+    type: 'PAYMENT_CREATE',
+    orderId,
+    amount,
+    status: 'pending',
+  });
+
   const vnpayResponse = await vnpay.buildPaymentUrl({
-    vnp_Amount: pkg.price,
+    vnp_Amount: amount,
     vnp_IpAddr: ipAddr,
-    vnp_TxnRef: `${subscription.id}`.replace(/-/g, ''),
+    vnp_TxnRef: `${orderId}`.replace(/-/g, ''),
     vnp_OrderInfo: `Thanh toan goi tap`,
     vnp_OrderType: ProductCode.Other,
     vnp_ReturnUrl: process.env.VNP_RETURN_URL,
@@ -71,24 +82,26 @@ const vnPayReturn = async (req, res) => {
   // Determine front‑end base URL once (can be overridden via env)
   const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
 
+  const { vnp_TxnRef, vnp_ResponseCode } = req.query;
   const verify = vnpay.verifyReturnUrl(req.query);
 
   if (!verify.isVerified) {
-    // signature problems are treated as failure
+    logger.warn('Payment callback failed', { type: 'PAYMENT_FAIL', orderId: vnp_TxnRef, status: 'invalid_signature' });
     return res.redirect(`${FRONTEND_URL}/payment-failed`);
   }
 
   if (!verify.isSuccess) {
+    logger.warn('Payment callback failed', { type: 'PAYMENT_FAIL', orderId: vnp_TxnRef, status: 'unsuccessful' });
     return res.redirect(`${FRONTEND_URL}/payment-failed`);
   }
 
-  const { vnp_TxnRef, vnp_ResponseCode } = req.query;
 
   if (!vnp_TxnRef) {
     return res.redirect(`${FRONTEND_URL}/payment-failed`);
   }
 
   if (vnp_ResponseCode !== '00') {
+    logger.warn('Payment callback failed', { type: 'PAYMENT_FAIL', orderId: vnp_TxnRef, status: vnp_ResponseCode });
     return res.redirect(`${FRONTEND_URL}/payment-failed`);
   }
 
@@ -99,9 +112,11 @@ const vnPayReturn = async (req, res) => {
   });
 
   if (!subscription) {
+    logger.warn('Payment callback failed', { type: 'PAYMENT_FAIL', orderId: vnp_TxnRef, status: 'subscription_not_found' });
     return res.redirect(`${FRONTEND_URL}/payment-failed`);
   }
 
+  logger.info('Payment callback success', { type: 'PAYMENT_SUCCESS', orderId: vnp_TxnRef, status: vnp_ResponseCode });
   return res.redirect(`${FRONTEND_URL}/payment-success`);
 }; 
 
@@ -110,12 +125,13 @@ const vnPayIPN = async (req, res) => {
   const verify = vnpay.verifyIpnCall(req.query);
 
   if (!verify.isVerified) {
+    logger.warn('IPN call invalid signature', { type: 'PAYMENT_FAIL', status: 'invalid_signature' });
     return res.json({ RspCode: '97', Message: 'Invalid signature' });
   }
 
   const { vnp_TxnRef, vnp_ResponseCode, vnp_Amount } = req.query;
-
   const originalId = restoreUUID(vnp_TxnRef);
+  const amount = vnp_Amount;
 
   const subscription = await prisma.subscription.findUnique({
     where: { id: originalId },
@@ -123,10 +139,12 @@ const vnPayIPN = async (req, res) => {
   });
 
   if (!subscription) {
+    logger.warn('IPN subscription not found', { type: 'PAYMENT_FAIL', orderId: originalId, amount, status: 'not_found' });
     return res.json({ RspCode: '01', Message: 'Subscription not found' });
   }
 
   if (subscription.status === 'active') {
+    logger.info('Payment already confirmed', { type: 'PAYMENT_SUCCESS', orderId: originalId, amount, status: 'already_active' });
     return res.json({ RspCode: '02', Message: 'Subscription already confirmed' });
   }
 
@@ -151,6 +169,7 @@ const vnPayIPN = async (req, res) => {
       }
     }); 
 
+    logger.info('Payment succeeded via IPN', { type: 'PAYMENT_SUCCESS', orderId: originalId, amount, status: '00' });
   } else {
       await prisma.subscription.updateMany({
       where: {
@@ -159,6 +178,7 @@ const vnPayIPN = async (req, res) => {
       },
       data: { status: 'failed' }
     });
+    logger.warn('Payment failed via IPN', { type: 'PAYMENT_FAIL', orderId: originalId, amount, status: vnp_ResponseCode });
   }
 
   return res.json({ RspCode: '00', Message: 'Confirm Success' });

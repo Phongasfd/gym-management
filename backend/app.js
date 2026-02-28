@@ -29,6 +29,10 @@ app.use(express.json());
 app.use(cookieParser());
 // Use cookie parser middleware
 
+// log every request
+const requestLogger = require('./middleware/requestLogger');
+app.use(requestLogger);
+
 // Apply global rate limiter to all routes
 app.use(globalLimiter);
 
@@ -67,5 +71,9 @@ app.use('/api/bookings', booking);
 
 const paymentRoutes = require('./routes/vnpayRoutes');
 app.use('/api/vnpay', paymentRoutes); 
+
+// global error handler (must be added after all routes)
+const errorHandler = require('./middleware/errorHandler');
+app.use(errorHandler);
 
 module.exports = app;

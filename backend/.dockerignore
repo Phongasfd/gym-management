@@ -27,6 +27,3 @@ docker-compose*.yml
 # OS
 .DS_Store
 Thumbs.db
-
-# Prisma (optional nếu không cần migrate trong container)
-# prisma/dev.db

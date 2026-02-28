@@ -17,6 +17,21 @@ function createStore() {
   }
 }
 
+const logger = require('../utils/logger');
+
+// helper to build handler that logs and responds
+function makeHandler(message) {
+  return (req, res) => {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.ip || req.connection?.remoteAddress;
+    logger.warn('Rate limit exceeded', {
+      type: 'RATE_LIMIT',
+      ip,
+      route: req.originalUrl || req.url,
+    });
+    res.status(429).json({ message });
+  };
+}
+
 // Global limiter: 100 requests per minute per IP
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
@@ -24,7 +39,7 @@ const globalLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: createStore(),
-  message: 'Too many requests from this IP, please try again later.',
+  handler: makeHandler('Too many requests from this IP, please try again later.'),
 });
 
 // Login limiter: 5 requests per minute per IP (for login endpoints)
@@ -34,7 +49,7 @@ const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: createStore(),
-  message: 'Too many login attempts from this IP, please try again after a minute.',
+  handler: makeHandler('Too many login attempts from this IP, please try again after a minute.'),
 });
 
 module.exports = { globalLimiter, loginLimiter };

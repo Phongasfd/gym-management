@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const prisma = require('../prisma');
+const logger = require('../utils/logger');
 
 // User-Member Registration
 const memberRegister = async (req, res) => {
@@ -78,11 +79,15 @@ const memberLogin = async (req, res) => {
     where: { email }
   });
   if (!member) {
-    return res.status(400).json({ msg: 'Invalid email' });
+    logger.warn('Login failed', { type: 'LOGIN_FAIL', email, ip: req.ip || req.connection?.remoteAddress, status: 401 });
+    return res.status(401).json({ msg: 'Invalid credentials' });
   }
 
   const isPasswordValid  = await bcrypt.compare(password, member.password_hash);
-  if(!isPasswordValid) return res.status(400).json({ msg: 'Invalid password' });
+  if(!isPasswordValid) {
+    logger.warn('Login failed', { type: 'LOGIN_FAIL', email, ip: req.ip || req.connection?.remoteAddress, status: 401 });
+    return res.status(401).json({ msg: 'Invalid credentials' });
+  }
 
   const token = jwt.sign({ userType: "member", userId: member.id}, process.env.JWT_SECRET, {expiresIn: '7d'});
 
@@ -106,10 +111,14 @@ const staffLogin = async (req, res) => {
     where: { email }
   }); 
   if (!staff) {
-    return res.status(400).json({ msg: 'Invalid email' });
+    logger.warn('Login failed', { type: 'LOGIN_FAIL', email, ip: req.ip || req.connection?.remoteAddress, status: 401 });
+    return res.status(401).json({ msg: 'Invalid credentials' });
   } 
   const isPasswordValid  = await bcrypt.compare(password, staff.password_hash);
-  if(!isPasswordValid) return res.status(400).json({ msg: 'Invalid password' });
+  if(!isPasswordValid) {
+    logger.warn('Login failed', { type: 'LOGIN_FAIL', email, ip: req.ip || req.connection?.remoteAddress, status: 401 });
+    return res.status(401).json({ msg: 'Invalid credentials' });
+  }
 
   const token = jwt.sign({ userType: "staff", staffId: staff.id, role: staff.role}, process.env.JWT_SECRET, {expiresIn: '7d'});
   // Send token in HTTP-only cookie
