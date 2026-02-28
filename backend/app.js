@@ -12,6 +12,9 @@ const app = express();
 const cookieParser = require('cookie-parser');
 // Middleware to parse cookies from incoming requests
 
+// Rate limiting (global)
+const { globalLimiter } = require('./middleware/rateLimit');
+
 // Allow request from other port, server
 app.use(cors({
     origin: ['http://localhost:3001', 'http://localhost:5173'],
@@ -25,6 +28,9 @@ app.use(express.json());
 
 app.use(cookieParser());
 // Use cookie parser middleware
+
+// Apply global rate limiter to all routes
+app.use(globalLimiter);
 
 app.get('/', (req, res) => {
     res.send('Gym Management System Backend is running');
