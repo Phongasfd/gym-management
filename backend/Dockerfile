@@ -1,26 +1,42 @@
-FROM node:18-alpine
-
-# Create app directory
+# ===============================
+# Base image
+# ===============================
+FROM node:18-alpine AS base
 WORKDIR /usr/src/app
-
-# Install dependencies (use package-lock if present)
 COPY package*.json ./
-RUN npm install --production
 
-# Copy app source
+# ===============================
+# Dependencies stage
+# ===============================
+FROM base AS deps
+RUN npm install
+
+# ===============================
+# Builder stage
+# ===============================
+FROM deps AS builder
 COPY . .
-
-# Generate prisma client  
 RUN npx prisma generate
 
-# Use a non-root user in production-friendly images (optional)
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup || true
-USER appuser
+
+# ===============================
+# Production stage
+# ===============================
+FROM node:18-alpine AS production
+WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
 
-# Expose the application port
+COPY package*.json ./
+RUN npm install --omit=dev
+
+# copy necessary files from builder
+COPY --from=builder /usr/src/app ./
+
+# security: non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup || true
+USER appuser
+
 EXPOSE 3000
 
-# Start the app
 CMD ["node", "server.js"]

@@ -1,11 +1,8 @@
-# version: "3.9" # dockver version 
-
-version: '3.9'
-
+# version: '3.9'
 services:
   postgres:
     image: postgres:16
-    container_name: gym_postgres
+    container_name: gym_postgres_dev
     restart: always
     ports:
       - "5432:5432"
@@ -18,7 +15,7 @@ services:
 
   redis:
     image: redis:7
-    container_name: gym_redis
+    container_name: gym_redis_dev
     restart: always
     ports:
       - "6379:6379"
@@ -30,14 +27,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: production
-    container_name: gym_backend
+      target: builder
+    container_name: gym_backend_dev
     restart: on-failure
     working_dir: /usr/src/app
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=${NODE_ENV}
+      - NODE_ENV=development
       - PORT=3000
       - DATABASE_URL=${DATABASE_URL}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -50,9 +47,9 @@ services:
       - postgres
     volumes:
       - ./:/usr/src/app
-    command: ["node", "server.js"]
+      - /usr/src/app/node_modules
+    command: ["npm","start"]
 
 volumes:
   postgres_data:
   redis_data:
-
