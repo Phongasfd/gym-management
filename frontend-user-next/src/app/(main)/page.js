@@ -4,6 +4,7 @@ import Features from "@/components/Features/Features";
 import Programs from "@/components/Programs/Programs";
 import Pricing from "@/components/Pricing/Pricing";
 import Footer from "@/components/Footer/Footer";
+import Chatbot from "@/components/Chatbot/Chatbot";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
       <Features />
       <Programs />
       <Pricing />
+      <Chatbot />
       <Footer />
     </>
   );

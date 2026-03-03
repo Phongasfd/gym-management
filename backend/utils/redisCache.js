@@ -6,11 +6,7 @@ function _hashBody(body) {
   return crypto.createHash('sha256').update(str).digest('hex');
 }
 
-/**
- * Try to retrieve cached advice using the body as key material.
- * @param {Object} body
- * @returns {Promise<Object|null>} parsed value or null if missing
- */
+
 async function getAdviceCache(body) {
   try {
     const hash = _hashBody(body);
@@ -25,11 +21,7 @@ async function getAdviceCache(body) {
   }
 }
 
-/**
- * Store advice in cache for one hour. Body is hashed to form key.
- * @param {Object} body
- * @param {Object} data
- */
+
 async function setAdviceCache(body, data) {
   try {
     const hash = _hashBody(body);

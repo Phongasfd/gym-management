@@ -86,3 +86,13 @@ export const createBooking = async (classId) => {
     throw error.response?.data || error.message;
   }
 };
+
+// AI advice API (chatbot)
+export const getAIAdvice = async (payload) => {
+  try {
+    const response = await axiosClient.post('/ai/advice', payload);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};

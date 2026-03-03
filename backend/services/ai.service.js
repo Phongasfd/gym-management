@@ -3,11 +3,7 @@ const { OpenAI } = require('openai');
 // initialize once using env variable
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-/**
- * Calls OpenAI and returns a structured JSON object with advice.
- * @param {Object} userData - contains age, gender, weight, height, activity_level, goal
- * @returns {Promise<Object>} parsed JSON response from the model
- */
+
 async function getAdvice(userData) {
   // put all instructions clearly in the system prompt
   const systemPrompt = `You are a helpful gym‑advice assistant. You receive user demographics and fitness goals, and you:
