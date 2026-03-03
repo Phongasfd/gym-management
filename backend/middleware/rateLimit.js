@@ -2,6 +2,8 @@ const rateLimit = require('express-rate-limit');
 const RedisStore = require('rate-limit-redis');
 const redisClient = require('../config/redis');
 
+const logger = require('../utils/logger');
+
 // Helper to create a Redis-backed store for express-rate-limit
 // We pass the modern redis client via `sendCommand` wrapper which rate-limit-redis
 // can use to issue commands. If your version of rate-limit-redis supports a
@@ -12,12 +14,14 @@ function createStore() {
       client: redisClient,
     });
   } catch (err) {
-    console.error('Failed to create Redis rate-limit store:', err);
+    logger.error('Failed to create Redis rate-limit store', {
+      type: 'RATE_LIMIT_STORE_ERROR',
+      error: err.message,
+      stack: err.stack,
+    });
     return undefined; // express-rate-limit will fallback to MemoryStore
   }
 }
-
-const logger = require('../utils/logger');
 
 // helper to build handler that logs and responds
 function makeHandler(message) {

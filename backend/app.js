@@ -72,6 +72,10 @@ app.use('/api/bookings', booking);
 const paymentRoutes = require('./routes/vnpayRoutes');
 app.use('/api/vnpay', paymentRoutes); 
 
+// AI advisory
+const aiRoutes = require('./routes/aiRoutes');
+app.use('/api/ai', aiRoutes);
+
 // global error handler (must be added after all routes)
 const errorHandler = require('./middleware/errorHandler');
 app.use(errorHandler);

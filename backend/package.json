@@ -30,7 +30,8 @@
     "prisma": "^6.19.2",
     "qs": "^6.15.0",
     "vnpay": "^2.4.4",
-    "winston": "^3.19.0"
+    "winston": "^3.19.0",
+    "openai": "^4.9.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
