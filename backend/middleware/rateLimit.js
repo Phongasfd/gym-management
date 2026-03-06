@@ -1,5 +1,5 @@
 const rateLimit = require('express-rate-limit');
-const RedisStore = require('rate-limit-redis');
+const { RedisStore } = require('rate-limit-redis');
 const redisClient = require('../config/redis');
 
 const logger = require('../utils/logger');
@@ -10,9 +10,10 @@ const logger = require('../utils/logger');
 // `client` option directly for node-redis v4, that may also work.
 function createStore() {
   try {
-    return new RedisStore({
-      client: redisClient,
+    const store = new RedisStore({
+      sendCommand: (...args) => redisClient.sendCommand(args),
     });
+    return store; 
   } catch (err) {
     logger.error('Failed to create Redis rate-limit store', {
       type: 'RATE_LIMIT_STORE_ERROR',
@@ -56,4 +57,13 @@ const loginLimiter = rateLimit({
   handler: makeHandler('Too many login attempts from this IP, please try again after a minute.'),
 });
 
-module.exports = { globalLimiter, loginLimiter };
+const aiLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: createStore(),
+  handler: makeHandler('Too many AI requests, please try again later.'),
+});
+
+module.exports = { globalLimiter, loginLimiter, aiLimiter };

@@ -114,11 +114,24 @@ const Chatbot = () => {
             </button>
           </form>
           {error && <div className={styles.error}>{error}</div>}
-          {response && <div className={styles.response}>{response}</div>}
+          {response && (
+          <div className={styles.response}>
+            <p>TDEE: {response.tdee.value}</p>
+            <p>{response.tdee.explanation}</p>
+
+            <p>Calories: {response.recommended_calories.value}</p>
+            <p>{response.recommended_calories.explanation}</p>
+
+            <p>Package: {response.package.name}</p>
+            <p>{response.package.reason}</p>
+
+            <p>Advice: {response.advice}</p>
+          </div>
+        )}
         </div>
       )}
       <button className={styles.toggleButton} onClick={toggleOpen}>
-        {open ? '×' : 'Chat'}
+        {open ? '×' : 'AI Chat'}
       </button>
     </div>
   );

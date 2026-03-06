@@ -3,7 +3,7 @@ const router = express.Router();
 
 const aiService = require('../services/ai.service');
 const { getAdviceCache, setAdviceCache } = require('../utils/redisCache');
-const aiRateLimit = require('../middleware/aiRateLimit');
+const { aiLimiter } = require('../middleware/rateLimit');
 
 // basic validation helper
 function validateInput(body) {
@@ -20,7 +20,7 @@ function validateInput(body) {
   return null;
 }
 
-router.post('/advice', aiRateLimit, async (req, res) => {
+router.post('/advice', aiLimiter, async (req, res) => {
   const errMsg = validateInput(req.body);
   if (errMsg) {
     return res.status(400).json({ message: errMsg });
