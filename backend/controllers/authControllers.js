@@ -217,8 +217,8 @@ const refreshToken = (req, res) => {
     });
 
     res.status(200).json({ msg: 'Token refreshed' });
-  } catch (err) {
-    return res.status(403).json({ msg: 'Invalid refresh token' });
+  } catch (error) {
+    return res.status(403).json({ msg: 'Invalid refresh token', error: error.message });
   }
 };
 

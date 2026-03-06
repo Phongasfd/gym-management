@@ -2,7 +2,7 @@ const logger = require('../utils/logger');
 
 // global error-handling middleware
 // logs error details and sends generic response to client
-module.exports = function errorHandler(err, req, res, next) {
+module.exports = function errorHandler(err, req, res, _next) {
   const status = err.status || 500;
 
   const sensitiveRoutes = ['/login', '/register'];

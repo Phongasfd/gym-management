@@ -102,6 +102,7 @@ module.exports = {
   createPackage,
   getAllPackages,
   getPackageById,
+  getPackageByUserId,
   updatePackage,
   deletePackage
 };

@@ -72,8 +72,7 @@ async function getAdvice(userData) {
 
   const userPrompt = `User data: ${JSON.stringify(userData)}.`;
 
-  try {
-    const response = await client.responses.create({
+  const response = await client.responses.create({
       model: 'gpt-4.1-nano',
       temperature: 0.3,
       // the new Responses API uses an array of messages
@@ -113,10 +112,6 @@ async function getAdvice(userData) {
     }
 
     return result;
-  } catch (err) {
-    // bubble up error for caller to handle
-    throw err;
-  }
 }
 
 module.exports = { getAdvice };
