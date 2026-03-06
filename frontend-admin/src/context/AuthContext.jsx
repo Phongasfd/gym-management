@@ -15,6 +15,8 @@ export const AuthProvider = ({ children }) => {
   
     const load = async () => {
       try {
+        // try to refresh tokens first
+        await axiosClient.get('/auth/refresh-token', { withCredentials: true }).catch(() => {});
         const res = await axiosClient.get('/auth/staff', {
           withCredentials: true,
         });

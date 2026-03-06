@@ -89,13 +89,22 @@ const memberLogin = async (req, res) => {
     return res.status(401).json({ msg: 'Invalid credentials' });
   }
 
-  const token = jwt.sign({ userType: "member", userId: member.id}, process.env.JWT_SECRET, {expiresIn: '7d'});
+  // payload shared between access & refresh tokens
+  const payload = { userType: "member", userId: member.id };
+  const access = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
+  const refresh = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { expiresIn: '7d' });
 
-  // Send token in HTTP-only cookie
-  res.cookie('access_token', token, {
+  // Send tokens in HTTP-only cookies
+  res.cookie('access_token', access, {
     httpOnly: true, // JS cannot access
     secure: false, // set to true in production with HTTPS
     sameSite: 'lax', // CSRF protection
+    maxAge: 15 * 60 * 1000 // 15 minutes
+  });
+  res.cookie('refresh_token', refresh, {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
 
@@ -120,14 +129,25 @@ const staffLogin = async (req, res) => {
     return res.status(401).json({ msg: 'Invalid credentials' });
   }
 
-  const token = jwt.sign({ userType: "staff", staffId: staff.id, role: staff.role}, process.env.JWT_SECRET, {expiresIn: '7d'});
-  // Send token in HTTP-only cookie
-  res.cookie('access_token', token, {
+  // same payload for both tokens
+  const payload = { userType: "staff", staffId: staff.id, role: staff.role };
+  const access = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
+  const refresh = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { expiresIn: '7d' });
+
+  // Send in cookies
+  res.cookie('access_token', access, {
     httpOnly: true, // JS cannot access
     secure: false, // set to true in production with HTTPS
     sameSite: 'lax', // cookies will be sent in cross-site requests
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    maxAge: 15 * 60 * 1000 // 15 minutes
   });
+  res.cookie('refresh_token', refresh, {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  });
+
   res.status(200).json({ msg: 'Login successful', user: { id: staff.id, full_name: staff.full_name, email: staff.email, role: staff.role } });  
 
 };
@@ -152,7 +172,54 @@ const logOut = (req, res) => {
     secure: false,
     sameSite: 'lax'
   });
+  // also clear refresh token when logging out
+  res.clearCookie('refresh_token', {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax'
+  });
   res.status(200).json({ msg: 'Logged out successfully' });
+};
+
+// issue new access token using refresh token
+const refreshToken = (req, res) => {
+  const token = req.cookies.refresh_token;
+  if (!token) {
+    return res.status(401).json({ msg: 'No refresh token' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
+    // rebuild payload – we simply re-use what was stored
+    const { userType, userId, staffId, role } = decoded;
+    const payload = { userType };
+    if (userId) payload.userId = userId;
+    if (staffId) {
+      payload.staffId = staffId;
+      payload.role = role;
+    }
+
+    const access = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
+    // Optionally rotate refresh token by issuing a new one
+    const refresh = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.cookie('access_token', access, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000
+    });
+    res.cookie('refresh_token', refresh, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.status(200).json({ msg: 'Token refreshed' });
+  } catch (err) {
+    return res.status(403).json({ msg: 'Invalid refresh token' });
+  }
 };
 
 const googleSuccess = async (req, res) => {
@@ -196,7 +263,7 @@ const googleSuccess = async (req, res) => {
   member.phone;
 
   if (!isComplete) {
-    const token = jwt.sign(
+    const access_token = jwt.sign(
       {
         userId: member.id,
         userType: "member",
@@ -206,7 +273,23 @@ const googleSuccess = async (req, res) => {
       { expiresIn: "15m" }
     );
 
-    res.cookie("access_token", token, {
+    const refresh_token = jwt.sign(
+      {
+        userId: member.id,
+        userType: "member",
+        needCompleteProfile: true
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("access_token", access_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax"
+    });
+
+    res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
       secure: false,
       sameSite: "lax"
@@ -221,7 +304,7 @@ const googleSuccess = async (req, res) => {
       userType: "member",
     },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "15m" }
   );
 
   res.cookie("access_token", token, {
@@ -292,7 +375,7 @@ const token = jwt.sign(
     userType: "member",
   },
   process.env.JWT_SECRET,
-  { expiresIn: "7d" }
+  { expiresIn: "15m" }
 );
 
 res.cookie("access_token", token, {
@@ -311,6 +394,7 @@ module.exports = {
   memberLogin,
   staffLogin,
   logOut,
+  refreshToken,
   getStaff,
   googleSuccess,
   facebookSuccess

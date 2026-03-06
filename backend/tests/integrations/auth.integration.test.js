@@ -35,5 +35,20 @@ describe("Auth API - Integration", () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty("user");
+
+    // verify cookies are set
+    const cookies = res.headers['set-cookie'];
+    expect(cookies.some(c=>c.startsWith('access_token'))).toBe(true);
+    expect(cookies.some(c=>c.startsWith('refresh_token'))).toBe(true);
+
+    // perform refresh using the received cookie
+    const refreshRes = await request(app)
+      .get("/api/auth/refresh-token")
+      .set('Cookie', cookies);
+
+    expect(refreshRes.statusCode).toBe(200);
+    const cookies2 = refreshRes.headers['set-cookie'];
+    expect(cookies2.some(c=>c.startsWith('access_token'))).toBe(true);
+    expect(cookies2.some(c=>c.startsWith('refresh_token'))).toBe(true);
   });
 });

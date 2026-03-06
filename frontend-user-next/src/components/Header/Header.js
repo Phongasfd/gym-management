@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import axioClient from '@/lib/axios';
+import axiosClient from '@/lib/axios';
 import styles from '@/styles/header.module.css';
 import {useRouter} from 'next/navigation';
 
@@ -36,7 +36,10 @@ function Header(){
 
         const checkAuth = async () => {
             try {
-                const res = await axioClient.get('/auth/me');
+                // attempt token refresh first; ignore errors
+                await axiosClient.get('/auth/refresh-token', { withCredentials: true }).catch(() => {});
+
+                const res = await axiosClient.get('/auth/me', { withCredentials: true });
 
                 if (res.status === 200) {
                     setLoggedIn(true);
@@ -65,7 +68,7 @@ function Header(){
     }
 
     async function handleLogout() {
-        await axioClient.post('/auth/logout');
+        await axiosClient.post('/auth/logout');
 
         setLoggedIn(false);
         router.push('/');
