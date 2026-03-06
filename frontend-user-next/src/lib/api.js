@@ -22,6 +22,34 @@ export const signup = async (full_name, phone, email, gender, date_of_birth, pas
   }
 };
 
+// Forgot Password APIs
+export const forgotPassword = async (email) => {
+  try {
+    const response = await axiosClient.post('/auth/forgot-password', { email });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const verifyResetCode = async (email, resetCode) => {
+  try {
+    const response = await axiosClient.post('/auth/verify-reset-code', { email, resetCode });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const resetPassword = async (email, resetCode, newPassword) => {
+  try {
+    const response = await axiosClient.post('/auth/reset-password', { email, resetCode, newPassword });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
 // Classes API
 export const fetchTodayClasses = async () => {
   try {

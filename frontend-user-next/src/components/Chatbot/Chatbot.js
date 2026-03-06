@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import styles from './Chatbot.module.css';
+import styles from '@/styles/Chatbot.module.css';
 import { getAIAdvice } from '@/lib/api';
 
 const Chatbot = () => {

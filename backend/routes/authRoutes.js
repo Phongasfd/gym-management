@@ -3,7 +3,7 @@ const router = express.Router();
 const passport = require('passport');
 const { authMiddleware, staffMiddleware } = require('../middleware/authMiddleware');
 
-const { memberRegister, memberCompleteProfile, getMe, memberLogin, staffLogin, logOut, refreshToken, getStaff, googleSuccess, facebookSuccess } = require('../controllers/authControllers');
+const { memberRegister, memberCompleteProfile, getMe, memberLogin, staffLogin, logOut, refreshToken, getStaff, googleSuccess, facebookSuccess, forgotPassword, resetPassword, verifyResetCode } = require('../controllers/authControllers');
 const { loginLimiter } = require('../middleware/rateLimit');
 
 // Apply loginLimiter to login endpoints to prevent brute-force attempts
@@ -23,6 +23,11 @@ facebookSuccess);
 router.post('/logout', authMiddleware, logOut);
 // refresh token endpoint does not require previous auth
 router.get('/refresh-token', refreshToken);
+
+// Forgot Password Routes
+router.post('/forgot-password', forgotPassword);
+router.post('/verify-reset-code', verifyResetCode);
+router.post('/reset-password', resetPassword);
 
 // Staff 
 router.get('/staff', authMiddleware, staffMiddleware, getStaff);

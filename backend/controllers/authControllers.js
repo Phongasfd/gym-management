@@ -387,6 +387,149 @@ res.cookie("access_token", token, {
 return res.redirect("http://localhost:3001");
 };
 
+// Forgot Password - Generate and send reset code
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Validate email
+    if (!email) {
+      logger.warn('Forgot password attempt without email', { ip: req.ip });
+      return res.status(400).json({ msg: 'Email is required' });
+    }
+
+    // Find member by email
+    const member = await prisma.member.findUnique({
+      where: { email }
+    });
+
+    // Don't reveal if email exists (security best practice)
+    if (!member) {
+      logger.warn('Forgot password for non-existent email', { email, ip: req.ip });
+      return res.status(200).json({ msg: 'If an account exists with this email, a reset code will be sent' });
+    }
+
+    // Generate 6-digit reset code
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const resetCodeExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Save reset code to database
+    await prisma.member.update({
+      where: { id: member.id },
+      data: {
+        reset_code: resetCode,
+        reset_code_expires: resetCodeExpires
+      }
+    });
+
+    // Send email with reset code
+    const { sendPasswordResetEmail } = require('../services/emailService');
+    const emailSent = await sendPasswordResetEmail(email, resetCode);
+
+    if (!emailSent) {
+      logger.error('Failed to send password reset email', { email });
+      return res.status(500).json({ msg: 'Failed to send reset code. Please try again later.' });
+    }
+
+    logger.info('Password reset code sent', { email });
+    res.status(200).json({ msg: 'If an account exists with this email, a reset code will be sent' });
+
+  } catch (error) {
+    logger.error('Forgot password error', { error: error.message });
+    res.status(500).json({ msg: 'An error occurred. Please try again later.' });
+  }
+};
+
+// Verify reset code and update password
+const resetPassword = async (req, res) => {
+  try {
+    const { email, resetCode, newPassword } = req.body;
+
+    // Validate inputs
+    if (!email || !resetCode || !newPassword) {
+      return res.status(400).json({ msg: 'Email, reset code, and new password are required' });
+    }
+
+    // Find member
+    const member = await prisma.member.findUnique({
+      where: { email }
+    });
+
+    if (!member) {
+      return res.status(401).json({ msg: 'Invalid email or reset code' });
+    }
+
+    // Check if reset code matches and is not expired
+    if (member.reset_code !== resetCode) {
+      logger.warn('Invalid reset code attempt', { email });
+      return res.status(401).json({ msg: 'Invalid email or reset code' });
+    }
+
+    if (!member.reset_code_expires || new Date() > member.reset_code_expires) {
+      logger.warn('Expired reset code attempt', { email });
+      return res.status(401).json({ msg: 'Reset code has expired. Please request a new one.' });
+    }
+
+    // Validate new password strength (at least 8 characters)
+    if (newPassword.length < 8) {
+      return res.status(400).json({ msg: 'Password must be at least 8 characters long' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password and clear reset code
+    await prisma.member.update({
+      where: { id: member.id },
+      data: {
+        password_hash: hashedPassword,
+        reset_code: null,
+        reset_code_expires: null
+      }
+    });
+
+    logger.info('Password reset successfully', { email });
+    res.status(200).json({ msg: 'Password has been reset successfully. Please log in with your new password.' });
+
+  } catch (error) {
+    logger.error('Reset password error', { error: error.message });
+    res.status(500).json({ msg: 'An error occurred. Please try again later.' });
+  }
+};
+
+// Verify reset code (without changing password)
+const verifyResetCode = async (req, res) => {
+  try {
+    const { email, resetCode } = req.body;
+
+    if (!email || !resetCode) {
+      return res.status(400).json({ msg: 'Email and reset code are required' });
+    }
+
+    const member = await prisma.member.findUnique({
+      where: { email }
+    });
+
+    if (!member) {
+      return res.status(401).json({ msg: 'Invalid email or reset code' });
+    }
+
+    if (member.reset_code !== resetCode) {
+      return res.status(401).json({ msg: 'Invalid reset code' });
+    }
+
+    if (!member.reset_code_expires || new Date() > member.reset_code_expires) {
+      return res.status(401).json({ msg: 'Reset code has expired' });
+    }
+
+    res.status(200).json({ msg: 'Reset code is valid' });
+
+  } catch (error) {
+    logger.error('Verify reset code error', { error: error.message });
+    res.status(500).json({ msg: 'An error occurred. Please try again later.' });
+  }
+};
+
 module.exports = {
   memberRegister,
   memberCompleteProfile, 
@@ -397,5 +540,8 @@ module.exports = {
   refreshToken,
   getStaff,
   googleSuccess,
-  facebookSuccess
+  facebookSuccess,
+  forgotPassword,
+  resetPassword,
+  verifyResetCode
 };
