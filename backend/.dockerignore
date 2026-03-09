@@ -12,13 +12,6 @@ yarn-error.log
 logs
 *.log
 
-# Build output
-dist
-build
-
-# Docker
-Dockerfile.dev
-
 # Git
 .git
 .gitignore
