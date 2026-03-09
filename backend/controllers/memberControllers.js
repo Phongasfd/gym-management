@@ -1,4 +1,4 @@
-const prisma = require('../prisma');
+const prisma = require('../prismaClient');
 
 // Create a new member
 const createMember = async (req, res) => {

@@ -1,4 +1,4 @@
-const prisma = require('../prisma');
+const prisma = require('../prismaClient');
 
 // Create a new subscription
 const createSubscription = async (req, res) => {

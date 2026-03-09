@@ -1,6 +1,6 @@
 process.env.JWT_SECRET = "test_secret";
 
-jest.mock("../../prisma", () => ({
+jest.mock("../../prismaClient", () => ({
   user: {
     findUnique: jest.fn(),
     update: jest.fn(),
@@ -14,7 +14,7 @@ jest.mock("bcryptjs", () => ({
 
 const request = require("supertest");
 const app = require("../../app");         
-const prisma = require("../../prisma");
+const prisma = require("../../prismaClient");
 const bcrypt = require("bcryptjs");
 
 // Mock auth middleware to always assign req.user

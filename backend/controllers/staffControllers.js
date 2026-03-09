@@ -1,4 +1,4 @@
-const prisma = require('../prisma');
+const prisma = require('../prismaClient');
 const bcrypt = require('bcryptjs');
 
 // updatePassword for staff account

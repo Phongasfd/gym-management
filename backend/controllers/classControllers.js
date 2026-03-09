@@ -1,4 +1,4 @@
-const prisma = require('../prisma');
+const prisma = require('../prismaClient');
 
 // Get all classes
 const getAllClasses = async (req, res) => {

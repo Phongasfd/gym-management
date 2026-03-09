@@ -1,7 +1,7 @@
 const request = require("supertest");
 const bcrypt = require("bcryptjs");
 const app = require("../../app");
-const prisma = require("../../prisma");
+const prisma = require("../../prismaClient");
 
 describe("Auth API - Integration", () => {
   beforeAll(async () => {

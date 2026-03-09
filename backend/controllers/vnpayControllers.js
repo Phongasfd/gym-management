@@ -1,5 +1,5 @@
 const { VNPay, ignoreLogger, ProductCode, VnpLocale, dateFormat } = require('vnpay'); 
-const prisma = require('../prisma');
+const prisma = require('../prismaClient');
 const logger = require('../utils/logger');
 
 function restoreUUID(str) {

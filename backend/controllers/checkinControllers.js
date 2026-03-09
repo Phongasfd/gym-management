@@ -1,4 +1,4 @@
-const prisma = require('../prisma');
+const prisma = require('../prismaClient');
 
 // Get all checkins
 const getAllCheckins = async (req, res) => {

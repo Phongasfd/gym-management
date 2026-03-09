@@ -1,42 +1,26 @@
-# ===============================
-# Base image
-# ===============================
-FROM node:18-alpine AS base
+# build stage
+FROM node:24-alpine AS builder
 WORKDIR /usr/src/app
+
 COPY package*.json ./
+RUN npm ci
 
-# ===============================
-# Dependencies stage
-# ===============================
-FROM base AS deps
-RUN npm install
-
-# ===============================
-# Builder stage
-# ===============================
-FROM deps AS builder
 COPY . .
+
 RUN npx prisma generate
+RUN npm prune --omit=dev
 
 
-# ===============================
-# Production stage
-# ===============================
-FROM node:18-alpine AS production
+# production stage
+FROM node:24-alpine AS runner
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
 
-COPY package*.json ./
-RUN npm install --omit=dev
-
-# copy necessary files from builder
 COPY --from=builder /usr/src/app ./
 
-# security: non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup || true
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
 EXPOSE 3000
-
 CMD ["node", "server.js"]

@@ -1,4 +1,4 @@
-const prisma = require('../prisma');
+const prisma = require('../prismaClient');
 
 // Get all bookings
 const getAllBookings = async (req, res) => {
