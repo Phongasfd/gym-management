@@ -12,7 +12,7 @@ RUN npm prune --omit=dev
 
 
 # production stage
-FROM node:24-alpine AS runner
+FROM node:24-alpine AS production
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
