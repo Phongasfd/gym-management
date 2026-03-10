@@ -26,8 +26,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-      target: builder
+      dockerfile: Dockerfile.dev
     container_name: gym_backend_dev
     restart: on-failure
     working_dir: /usr/src/app
@@ -53,7 +52,7 @@ services:
   frontend-admin:
     build:
       context: ./frontend-admin
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev 
     container_name: gym_frontend_admin_dev
     restart: on-failure
     working_dir: /app
