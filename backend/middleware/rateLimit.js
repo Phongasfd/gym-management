@@ -8,6 +8,16 @@ const logger = require('../utils/logger');
 // We pass the modern redis client via `sendCommand` wrapper which rate-limit-redis
 // can use to issue commands. If your version of rate-limit-redis supports a
 // `client` option directly for node-redis v4, that may also work.
+
+if (process.env.NODE_ENV === "test") {
+  module.exports = {
+    globalLimiter: (req, res, next) => next(),
+    authLimiter: (req, res, next) => next(),
+    aiLimiter: (req, res, next) => next(),
+  };
+  return;
+}
+
 function createStore() {
   try {
     const store = new RedisStore({
