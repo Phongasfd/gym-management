@@ -9,6 +9,7 @@ const logger = require('../utils/logger');
 // can use to issue commands. If your version of rate-limit-redis supports a
 // `client` option directly for node-redis v4, that may also work.
 
+
 if (process.env.NODE_ENV === "test") {
   module.exports = {
     globalLimiter: (req, res, next) => next(),
