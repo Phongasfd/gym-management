@@ -1,4 +1,5 @@
 process.env.JWT_SECRET = "test_secret";
+process.env.OPENAI_API_KEY="test_openai_key";
 
 jest.mock("../../prismaClient", () => ({
   user: {
