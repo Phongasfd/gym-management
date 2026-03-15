@@ -12,7 +12,7 @@ const logger = require('../utils/logger');
 if (process.env.NODE_ENV === "test") {
   module.exports = {
     globalLimiter: (req, res, next) => next(),
-    authLimiter: (req, res, next) => next(),
+    loginLimiter: (req, res, next) => next(),
     aiLimiter: (req, res, next) => next(),
   };
   return;
