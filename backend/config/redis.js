@@ -23,7 +23,9 @@ client.on('ready', () => {
 // Connect on startup (async)
 (async () => {
   try {
-    await client.connect();
+    if(process.env.NODE_ENV !== 'test') {
+      await client.connect();
+    }
   } catch (err) {
     console.error('Failed to connect to Redis:', err);
     // If Redis is essential for your app, you may exit. Otherwise handle gracefully.
