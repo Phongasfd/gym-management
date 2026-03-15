@@ -12,8 +12,6 @@ const app = express();
 const cookieParser = require('cookie-parser');
 // Middleware to parse cookies from incoming requests
 
-// Rate limiting (global)
-const { globalLimiter } = require('./middleware/rateLimit');
 
 // Allow request from other port, server
 app.use(cors({
@@ -29,16 +27,24 @@ app.use(express.json());
 app.use(cookieParser());
 // Use cookie parser middleware
 
-// log every request
-const requestLogger = require('./middleware/requestLogger');
-app.use(requestLogger);
 
-// Apply global rate limiter to all routes
-app.use(globalLimiter);
+
+if (process.env.NODE_ENV !== 'test') {
+    // Rate limiting (global)
+    const { globalLimiter } = require('./middleware/rateLimit');
+    // Apply global rate limiter to all routes
+    app.use(globalLimiter);
+}
 
 app.get('/', (req, res) => {
     res.send('Gym Management System Backend is running');
 });
+
+if (process.env.NODE_ENV !== 'test') {
+    // log every request
+    const requestLogger = require('./middleware/requestLogger');
+    app.use(requestLogger);
+}
 
 const auth = require('./routes/authRoutes');
 app.use('/api/auth', auth);
@@ -69,12 +75,14 @@ app.use('/api/classes', classes);
 const booking = require('./routes/bookingRoutes');
 app.use('/api/bookings', booking);
 
-const paymentRoutes = require('./routes/vnpayRoutes');
-app.use('/api/vnpay', paymentRoutes); 
+if(process.env.NODE_ENV !== 'test') {
+    const paymentRoutes = require('./routes/vnpayRoutes');
+    app.use('/api/vnpay', paymentRoutes); 
 
-// AI advisory
-const aiRoutes = require('./routes/aiRoutes');
-app.use('/api/ai', aiRoutes);
+    // AI advisory
+    const aiRoutes = require('./routes/aiRoutes');
+    app.use('/api/ai', aiRoutes);
+}
 
 // global error handler (must be added after all routes)
 const errorHandler = require('./middleware/errorHandler');
