@@ -59,7 +59,7 @@ if (process.env.NODE_ENV === "test") {
   // Login limiter: 5 requests per minute per IP (for login endpoints)
   const loginLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: 5,
+    max: 15,
     standardHeaders: true,
     legacyHeaders: false,
     store: createStore(),
