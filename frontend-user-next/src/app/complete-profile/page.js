@@ -10,6 +10,7 @@ export default function CompleteProfilePage() {
   const [dob, setDOB] = useState('');
   const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
 
 
 
