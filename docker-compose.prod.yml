@@ -19,24 +19,19 @@ services:
       - redis_data:/data
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      target: production
+    image: namphong134/gym-backend:latest
     container_name: gym_backend
     restart: always
     ports:
       - "3000:3000"
     env_file:
-    - ./backend/.env
+      - ./backend/.env
     depends_on:
       - postgres
       - redis
 
   frontend-admin:
-    build:
-      context: ./frontend-admin
-      dockerfile: Dockerfile
+    image: namphong134/gym-frontend-admin:latest
     container_name: gym_frontend_admin
     restart: always
     ports:
@@ -47,9 +42,7 @@ services:
       - backend
 
   frontend-user:
-    build:
-      context: ./frontend-user-next
-      dockerfile: Dockerfile
+    image: namphong134/gym-frontend-user:latest
     container_name: gym_frontend_user
     restart: always
     ports:
