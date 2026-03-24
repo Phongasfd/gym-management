@@ -2,6 +2,12 @@
 node_modules
 npm-debug.log
 yarn-error.log
+.pnpm-store
+
+# Build output
+dist
+build
+.next
 
 # Environment variables
 .env
@@ -16,9 +22,20 @@ logs
 .git
 .gitignore
 
+# Docker
+Dockerfile
+docker-compose*
+.dockerignore
+
 # OS
 .DS_Store
 Thumbs.db
 
 # Test
-tests 
+tests
+coverage
+
+# Misc
+.vscode
+.idea
+*.md
