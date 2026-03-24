@@ -30,13 +30,17 @@ jobs:
       # 4. Frontend User
       - name: Frontend User
         run: |
-          docker build -t namphong134/gym-frontend-user:latest ./frontend-user-next
+          docker build \
+            --build-arg NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }} \
+            -t namphong134/gym-frontend-user:latest ./frontend-user-next
           docker push namphong134/gym-frontend-user:latest
 
       # 5. Frontend Admin
       - name: Frontend Admin
         run: |
-          docker build -t namphong134/gym-frontend-admin:latest ./frontend-admin
+          docker build \
+            --build-arg VITE_API_BASE_URLL=${{ secrets.VITE_API_BASE_URL }} \
+            -t namphong134/gym-frontend-admin:latest ./frontend-admin
           docker push namphong134/gym-frontend-admin:latest
 
       # 6. SSH EC2 để deploy
