@@ -80,7 +80,7 @@ const vnPay = async (req, res) => {
 
 const vnPayReturn = async (req, res) => {
   // Determine front‑end base URL once (can be overridden via env)
-  const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
+  const FRONTEND_URL = process.env.FRONTEND_URL || 'http://54.169.157.109:3001';
 
   const { vnp_TxnRef, vnp_ResponseCode } = req.query;
   const verify = vnpay.verifyReturnUrl(req.query);
