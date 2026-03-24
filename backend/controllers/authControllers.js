@@ -295,7 +295,7 @@ const googleSuccess = async (req, res) => {
       sameSite: "lax"
     });
 
-    return res.redirect("http://localhost:3001/complete-profile");
+    return res.redirect("http://http://54.169.157.109:3001/complete-profile");
   }
 
   const token = jwt.sign(
@@ -313,7 +313,7 @@ const googleSuccess = async (req, res) => {
     sameSite: "lax"
   });
 
-  return res.redirect("http://localhost:3001");
+  return res.redirect("http://http://54.169.157.109:3001");
 
 };
 

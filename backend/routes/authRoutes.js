@@ -13,7 +13,7 @@ router.patch('/complete-profile', authMiddleware, memberCompleteProfile);
 router.get('/me', authMiddleware, getMe); 
 
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/google/callback', passport.authenticate('google', {session: false, failureRedirect: 'http://localhost:3001/login'}),
+router.get('/google/callback', passport.authenticate('google', {session: false, failureRedirect: 'http://54.169.157.109:3001/login'}),
 googleSuccess);
 
 router.get('/facebook', passport.authenticate('facebook', { scope: ['profile'] }));
