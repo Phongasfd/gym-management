@@ -9,6 +9,9 @@ const cors = require('cors');
 const express = require('express');
 const app = express();
 
+// If your app is behind nginx or any reverse proxy, trust the proxy headers so req.ip is the real client IP.
+app.set('trust proxy', true);
+
 const cookieParser = require('cookie-parser');
 // Middleware to parse cookies from incoming requests
 
