@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../prismaClient');
 const logger = require('../utils/logger');
 
+const isProd = process.env.NODE_ENV === 'production';
+
 // User-Member Registration
 const memberRegister = async (req, res) => {
   const {full_name, phone, email, gender, date_of_birth, password } = req.body;
@@ -97,14 +99,14 @@ const memberLogin = async (req, res) => {
   // Send tokens in HTTP-only cookies
   res.cookie('access_token', access, {
     httpOnly: true, // JS cannot access
-    secure: false, // set to true in production with HTTPS
-    sameSite: 'lax', // CSRF protection
+    secure: isProd, // set to true in production with HTTPS
+    sameSite: isProd? 'none': 'lax', // CSRF protection
     maxAge: 15 * 60 * 1000 // 15 minutes
   });
   res.cookie('refresh_token', refresh, {
     httpOnly: true,
-    secure: false,
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd? 'none': 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
 
@@ -137,14 +139,14 @@ const staffLogin = async (req, res) => {
   // Send in cookies
   res.cookie('access_token', access, {
     httpOnly: true, // JS cannot access
-    secure: false, // set to true in production with HTTPS
-    sameSite: 'lax', // cookies will be sent in cross-site requests
+    secure: isProd, // set to true in production with HTTPS
+    sameSite: isProd? 'none': 'lax', // CSRF protection
     maxAge: 15 * 60 * 1000 // 15 minutes
   });
   res.cookie('refresh_token', refresh, {
     httpOnly: true,
-    secure: false,
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd? 'none': 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 
@@ -169,14 +171,14 @@ const getStaff = async (req, res) => {
 const logOut = (req, res) => {
   res.clearCookie('access_token', {
     httpOnly: true,
-    secure: false,
-    sameSite: 'lax'
+    secure: isProd,
+    sameSite: isProd? 'none': 'lax'
   });
   // also clear refresh token when logging out
   res.clearCookie('refresh_token', {
     httpOnly: true,
-    secure: false,
-    sameSite: 'lax'
+    secure: isProd,
+    sameSite: isProd? 'none': 'lax'
   });
   res.status(200).json({ msg: 'Logged out successfully' });
 };
@@ -205,14 +207,14 @@ const refreshToken = (req, res) => {
 
     res.cookie('access_token', access, {
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
+      secure: isProd,
+      sameSite: isProd? 'none': 'lax',
       maxAge: 15 * 60 * 1000
     });
     res.cookie('refresh_token', refresh, {
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
+      secure: isProd,
+      sameSite: isProd? 'none': 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -285,17 +287,17 @@ const googleSuccess = async (req, res) => {
 
     res.cookie("access_token", access_token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax"
+      secure: isProd,
+      sameSite: isProd? 'none': 'lax'
     });
 
     res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax"
+      secure: isProd,
+      sameSite: isProd? 'none': 'lax'
     });
 
-    return res.redirect("http://http://54.169.157.109:3001/complete-profile");
+    return res.redirect("http://54.169.157.109:3001/complete-profile");
   }
 
   const token = jwt.sign(
@@ -309,11 +311,11 @@ const googleSuccess = async (req, res) => {
 
   res.cookie("access_token", token, {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax"
+    secure: isProd,
+    sameSite: isProd? 'none': 'lax'
   });
 
-  return res.redirect("http://http://54.169.157.109:3001");
+  return res.redirect("http://54.169.157.109:3001");
 
 };
 

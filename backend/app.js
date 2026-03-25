@@ -9,8 +9,8 @@ const cors = require('cors');
 const express = require('express');
 const app = express();
 
-// If your app is behind nginx or any reverse proxy, trust the proxy headers so req.ip is the real client IP.
-app.set('trust proxy', true);
+// trust the proxy headers so req.ip is the real client IP.
+app.set('trust proxy', 1);
 
 const cookieParser = require('cookie-parser');
 // Middleware to parse cookies from incoming requests
@@ -18,7 +18,7 @@ const cookieParser = require('cookie-parser');
 
 // Allow request from other port, server
 app.use(cors({
-    origin: ['http://54.169.157.109:3001', 'http://54.169.157.109:5173'],
+    origin: ['http://54.169.157.109:3001', 'http://54.169.157.109:5173', 'https://54.169.157.109.nip.io'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true // Allow cookies or auth header to be sent 
 }));
@@ -48,6 +48,10 @@ if (process.env.NODE_ENV !== 'test') {
     const requestLogger = require('./middleware/requestLogger');
     app.use(requestLogger);
 }
+
+app.get('/api', (req, res) => {
+    res.json({ message: 'API is running' });
+});
 
 const auth = require('./routes/authRoutes');
 app.use('/api/auth', auth);
