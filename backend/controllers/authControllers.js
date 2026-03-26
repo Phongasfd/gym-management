@@ -297,7 +297,7 @@ const googleSuccess = async (req, res) => {
       sameSite: isProd? 'none': 'lax'
     });
 
-    return res.redirect("http://54.169.157.109:3001/complete-profile");
+    return res.redirect("http://54.169.157.109.nip.io/complete-profile");
   }
 
   const token = jwt.sign(
@@ -315,7 +315,7 @@ const googleSuccess = async (req, res) => {
     sameSite: isProd? 'none': 'lax'
   });
 
-  return res.redirect("http://54.169.157.109:3001");
+  return res.redirect("http://54.169.157.109.nip.io");
 
 };
 
@@ -368,7 +368,7 @@ if (!isComplete) {
     sameSite: "lax"
   });
 
-  return res.redirect("http://localhost:3001/complete-profile");
+  return res.redirect("https://54.169.157.109.nip.io/complete-profile");
 }
 
 const token = jwt.sign(
@@ -386,7 +386,7 @@ res.cookie("access_token", token, {
   sameSite: "lax"
 });
 
-return res.redirect("http://localhost:3001");
+return res.redirect("http://54.169.157.109.nip.io");
 };
 
 // Forgot Password - Generate and send reset code
