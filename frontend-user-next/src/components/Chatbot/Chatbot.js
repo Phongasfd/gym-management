@@ -1,41 +1,60 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styles from '@/styles/Chatbot.module.css';
-import { getAIAdvice } from '@/lib/api';
+import { chatWithAI } from '@/lib/api';
 
 const Chatbot = () => {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({
-    age: '',
-    gender: 'male',
-    weight: '',
-    height: '',
-    activity_level: 'low',
-    goal: ''
-  });
-  const [response, setResponse] = useState('');
+  const [messages, setMessages] = useState([
+    {
+      role: 'assistant',
+      content: 'Hi! I\'m your gym fitness assistant. I can help you with questions about diet, workout programs, gym packages, and general fitness advice. What would you like to know?'
+    }
+  ]);
+  const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const toggleOpen = () => setOpen((o) => !o);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
+    if (!input.trim() || loading) return;
+
+    const userMessage = { role: 'user', content: input.trim() };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    setInput('');
     setLoading(true);
+
     try {
-      const result = await getAIAdvice(form);
-      setResponse(result.data);
-    } catch (err) {
-      setError(err.message || 'Failed to get advice');
+      const response = await chatWithAI(newMessages);
+      const assistantMessage = { role: 'assistant', content: response.message };
+      setMessages([...newMessages, assistantMessage]);
+    } catch (error) {
+      const errorMessage = {
+        role: 'assistant',
+        content: 'Sorry, I\'m having trouble responding right now. Please try again later.'
+      };
+      setMessages([...newMessages, errorMessage]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
     }
   };
 
@@ -43,96 +62,64 @@ const Chatbot = () => {
     <div className={styles.chatbotContainer}>
       {open && (
         <div className={styles.chatWindow}>
-          <div className={styles.header}>AI Assistant</div>
-          <form className={styles.form} onSubmit={handleSubmit}>
-            <label>
-              Age:
-              <input
-                type="number"
-                name="age"
-                value={form.age}
-                onChange={handleChange}
-                required
-              />
-            </label>
-            <label>
-              Gender:
-              <select
-                name="gender"
-                value={form.gender}
-                onChange={handleChange}
+          <div className={styles.header}>
+            <span>Gym Assistant</span>
+            <button onClick={toggleOpen} className={styles.closeButton}>×</button>
+          </div>
+
+          <div className={styles.messagesContainer}>
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`${styles.message} ${
+                  message.role === 'user' ? styles.userMessage : styles.assistantMessage
+                }`}
               >
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-            </label>
-            <label>
-              Weight (kg):
-              <input
-                type="number"
-                name="weight"
-                value={form.weight}
-                onChange={handleChange}
-                required
-              />
-            </label>
-            <label>
-              Height (cm):
-              <input
-                type="number"
-                name="height"
-                value={form.height}
-                onChange={handleChange}
-                required
-              />
-            </label>
-            <label>
-              Activity level:
-              <select
-                name="activity_level"
-                value={form.activity_level}
-                onChange={handleChange}
-              >
-                <option value="low">Low</option>
-                <option value="moderate">Moderate</option>
-                <option value="high">High</option>
-              </select>
-            </label>
-            <label>
-              Goal:
-              <input
-                type="text"
-                name="goal"
-                value={form.goal}
-                onChange={handleChange}
-                required
-              />
-            </label>
-            <button type="submit" disabled={loading}>
-              {loading ? 'Thinking...' : 'Get Advice'}
+                <div className={styles.messageContent}>
+                  {message.content}
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div className={`${styles.message} ${styles.assistantMessage}`}>
+                <div className={styles.messageContent}>
+                  <div className={styles.typingIndicator}>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <form className={styles.inputForm} onSubmit={handleSubmit}>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask me about diet, workouts, packages..."
+              disabled={loading}
+              className={styles.inputField}
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || loading}
+              className={styles.sendButton}
+            >
+              Send
             </button>
           </form>
-          {error && <div className={styles.error}>{error}</div>}
-          {response && (
-          <div className={styles.response}>
-            <p>TDEE: {response.tdee.value}</p>
-            <p>{response.tdee.explanation}</p>
-
-            <p>Calories: {response.recommended_calories.value}</p>
-            <p>{response.recommended_calories.explanation}</p>
-
-            <p>Package: {response.package.name}</p>
-            <p>{response.package.reason}</p>
-
-            <p>Advice: {response.advice}</p>
-          </div>
-        )}
         </div>
       )}
-      <button className={styles.toggleButton} onClick={toggleOpen}>
-        {open ? '×' : 'AI Chat'}
-      </button>
+
+      {!open && (
+        <button className={styles.toggleButton} onClick={toggleOpen}>
+          💬 Chat
+        </button>
+      )}
     </div>
   );
 };

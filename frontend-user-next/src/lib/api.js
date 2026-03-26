@@ -115,10 +115,10 @@ export const createBooking = async (classId) => {
   }
 };
 
-// AI advice API (chatbot)
-export const getAIAdvice = async (payload) => {
+// AI chat API
+export const chatWithAI = async (messages) => {
   try {
-    const response = await axiosClient.post('/ai/advice', payload);
+    const response = await axiosClient.post('/ai/chat', { messages });
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;

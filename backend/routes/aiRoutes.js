@@ -2,49 +2,21 @@ const express = require('express');
 const router = express.Router();
 
 const aiService = require('../services/ai.service');
-const { getAdviceCache, setAdviceCache } = require('../utils/redisCache');
 const { aiLimiter } = require('../middleware/rateLimit');
 
-// basic validation helper
-function validateInput(body) {
-  const required = ['age', 'gender', 'weight', 'height', 'activity_level', 'goal'];
-  for (const field of required) {
-    if (
-      body[field] === undefined ||
-      body[field] === null ||
-      body[field] === ''
-    ) {
-      return `Missing required field: ${field}`;
-    }
-  }
-  return null;
-}
+router.post('/chat', aiLimiter, async (req, res) => {
+  const { messages } = req.body;
 
-router.post('/advice', aiLimiter, async (req, res) => {
-  const errMsg = validateInput(req.body);
-  if (errMsg) {
-    return res.status(400).json({ message: errMsg });
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ message: 'Messages array is required' });
   }
 
   try {
-    // try read from cache first
-    const cached = await getAdviceCache(req.body);
-    if (cached) {
-      return res.json({ data: cached, cached: true });
-    }
-
-    const advice = await aiService.getAdvice(req.body);
-
-    // store in cache asynchronously (don't block response if it fails)
-    setAdviceCache(req.body, advice).catch((e) => {
-      console.error('Failed to cache AI advice', e);
-    });
-
-    res.json({ data: advice });
+    const response = await aiService.chatWithAI(messages);
+    res.json({ message: response });
   } catch (err) {
-    console.error('AI advice route error', err);
-    // sanitize error message
-    res.status(500).json({ message: 'Failed to generate advice at this time.' });
+    console.error('AI chat route error', err);
+    res.status(500).json({ message: 'Failed to get chat response at this time.' });
   }
 });
 
