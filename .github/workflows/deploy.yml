@@ -39,7 +39,7 @@ jobs:
       - name: Frontend Admin
         run: |
           docker build \
-            --build-arg VITE_API_BASE_URLL=${{ secrets.VITE_API_BASE_URL }} \
+            --build-arg VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
             -t namphong134/gym-frontend-admin:latest ./frontend-admin
           docker push namphong134/gym-frontend-admin:latest
 
