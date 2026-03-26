@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import axios from 'axios';
+import axiosClient from '../../lib/axios.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 
 
@@ -16,7 +16,7 @@ function Login(){
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:3000/api/auth/staff-login', 
+            const res = await axiosClient.post('/auth/staff-login', 
                 { email, password },
                 { withCredentials: true }
             );
@@ -32,33 +32,6 @@ function Login(){
             }
         }
     };
-
-    const handleGoogle = async (e) => {
-        e.preventDefault();
-        try {
-            window.location.href = 'http://localhost:3000/api/auth/google';
-        } catch(err){
-            if(err.response){
-                setError(err.response.data.msg);
-            }else {
-                setError("Server error");
-            }
-        }
-    };
-
-    const handleFacebook = async (e) => {
-        e.preventDefault();
-        try {
-            window.location.href = 'http://localhost:3000/api/auth/facebook';
-        } catch(err){
-            if(err.response){
-                setError(err.response.data.msg);
-            }else {
-                setError("Server error");
-            }
-        }
-    };
-
 
     return (
     <div className="login-page">
