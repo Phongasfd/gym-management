@@ -24,7 +24,7 @@ export default function ImageSlider() {
   return (
     <div className={styles.slider}>
       <button className={styles.prev} onClick={prevSlide}>
-        ❮
+        &#60;
       </button>
 
       <div className={styles.imageContainer}>
@@ -37,7 +37,7 @@ export default function ImageSlider() {
       </div>
 
       <button className={styles.next} onClick={nextSlide}>
-        ❯
+        &#62;
       </button>
     </div>
   );

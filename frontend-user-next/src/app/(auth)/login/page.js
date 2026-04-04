@@ -32,7 +32,7 @@ function Login(){
             {/* <!-- Header --> */}
             <div className="auth-header">
                 <a href="" className="auth-logo">
-                    <span className="auth-logo-icon">💪</span>
+                    <span className="auth-logo-icon"></span>
                     <span className="auth-logo-text">ELEVATE</span>
                 </a>
                 <h1 className="auth-title">Welcome Back</h1>

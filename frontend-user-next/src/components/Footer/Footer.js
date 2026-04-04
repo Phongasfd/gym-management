@@ -9,7 +9,7 @@ function Footer(){
             <div className={styles["footer-content"]}>
                 <div className={styles["footer-brand"]}>
                     <a href="#" className={styles.logo}>
-                        <span className={styles["logo-icon"]}>💪</span>
+                   
                         <span className={styles["logo-text"]}>ELEVATE</span>
                     </a>
                     <p className={styles["footer-description"]}>The future of fitness is intelligent, adaptive, and accessible to everyone.</p>

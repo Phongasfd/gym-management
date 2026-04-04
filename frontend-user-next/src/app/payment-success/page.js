@@ -11,7 +11,7 @@ export default function PaymentStatus() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <div className={styles.icon} style={{ color: 'green' }}>✅</div>
+      
         <h2 className={styles.title}>Payment Successful!</h2>
         <p className={styles.message}>Your payment has been processed successfully.</p>
         <button

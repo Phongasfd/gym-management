@@ -42,7 +42,7 @@ const sendPasswordResetEmail = async (email, resetCode) => {
           <body>
             <div class="container">
               <div class="header">
-                <h1>💪 ELEVATE Gym</h1>
+                <h1>ELEVATE Gym</h1>
               </div>
               
               <div class="content">
@@ -62,7 +62,7 @@ const sendPasswordResetEmail = async (email, resetCode) => {
                   <li>Never share this code with anyone</li>
                 </ul>
                 
-                <p class="warning">⚠️ If you didn't request this, your account may be at risk. Please contact our support team immediately.</p>
+                <p class="warning">&#x1F6A9; If you didn't request this, your account may be at risk. Please contact our support team immediately.</p>
               </div>
               
               <div class="footer">

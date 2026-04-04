@@ -106,7 +106,7 @@ export default function ForgotPassword() {
         {/* Header */}
         <div className={styles["auth-header"]}>
           <a href="/" className={styles["auth-logo"]}>
-            <span className={styles["auth-logo-icon"]}>💪</span>
+            <span className={styles["auth-logo-icon"]}></span>
             <span className={styles["auth-logo-text"]}>ELEVATE</span>
           </a>
           <h1 className={styles["auth-title"]}>Reset Password</h1>

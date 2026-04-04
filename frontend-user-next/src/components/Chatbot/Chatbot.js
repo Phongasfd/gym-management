@@ -64,7 +64,7 @@ const Chatbot = () => {
         <div className={styles.chatWindow}>
           <div className={styles.header}>
             <span>Gym Assistant</span>
-            <button onClick={toggleOpen} className={styles.closeButton}>×</button>
+            <button onClick={toggleOpen} className={styles.closeButton}>x</button>
           </div>
 
           <div className={styles.messagesContainer}>
@@ -117,7 +117,7 @@ const Chatbot = () => {
 
       {!open && (
         <button className={styles.toggleButton} onClick={toggleOpen}>
-          💬 Chat
+          Chat
         </button>
       )}
     </div>

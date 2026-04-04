@@ -42,21 +42,21 @@ function Dashboard(){
                 {/* <!-- Stats Cards --> */}
                 <div className="stats-grid">
                     <div className="stat-card">
-                        <div className="stat-icon members" data-icon="👥">👥</div>
+                        <div className="stat-icon members"></div>
                         <div className="stat-details">
                             <h3>{loading ? 'Loading...' : activeCount}</h3>
                             <p>Active Members</p>
                         </div>
                     </div>
                     <div className="stat-card">
-                        <div className="stat-icon classes" data-icon="💪">💪</div>
+                        <div className="stat-icon classes"></div>
                         <div className="stat-details">
                             <h3>{loading ? 'Loading...' : todayClassesCount}</h3>
                             <p>Today's Classes</p>
                         </div>
                     </div>
                     <div className="stat-card">
-                        <div className="stat-icon bookings" data-icon="📅">📅</div>
+                        <div className="stat-icon bookings"></div>
                         <div className="stat-details">
                             <h3>{loading ? 'Loading...' : todayBookingsCount}</h3>
                             <p>Today's Bookings</p>

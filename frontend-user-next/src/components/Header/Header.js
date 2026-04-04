@@ -81,7 +81,7 @@ function Header(){
                     <div className="container">
                             <nav className={styles.navbar}>
                                     <a href="#hero" className={styles.logo} onClick={(e) => handleClick(e, 'hero')}>
-                                            <span className={styles["logo-icon"]}>💪</span>
+                                            
                                             <span className={styles["logo-text"]}>ELEVATE</span>
                                     </a>
                   

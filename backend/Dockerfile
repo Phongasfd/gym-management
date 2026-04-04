@@ -17,7 +17,23 @@ WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
 
-COPY --from=builder /usr/src/app ./
+# Copy only production dependencies
+COPY --from=builder /usr/src/app/package.json ./
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+
+# Copy Prisma files needed for migrations and client
+COPY --from=builder /usr/src/app/prisma ./prisma
+
+# Copy only the necessary source files (exclude tests, config files, etc.)
+COPY server.js ./
+COPY app.js ./
+COPY prismaClient.js ./
+COPY config ./config
+COPY controllers ./controllers
+COPY middleware ./middleware
+COPY routes ./routes
+COPY services ./services
+COPY utils ./utils
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser

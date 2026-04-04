@@ -37,7 +37,7 @@ function Login(){
     <div className="login-page">
       <div className="login-card">
         <div className="login-header">
-            <div className="login-logo" data-icon="💪">💪</div>
+
             <h1>GymPro Management</h1>
             <p>Internal Admin Dashboard</p>
         </div>
