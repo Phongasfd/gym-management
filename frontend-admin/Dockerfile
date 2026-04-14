@@ -22,6 +22,9 @@
   COPY --from=builder /app/dist ./dist
   
   RUN npm install -g serve && npm cache clean --force
+
+  RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+  USER appuser
   
   EXPOSE 5173
   

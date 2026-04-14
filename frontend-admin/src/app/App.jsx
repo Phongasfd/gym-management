@@ -9,7 +9,7 @@ function App() {
   return (
     <>
     <AuthProvider>
-      <BrowserRouter basename="/admin">
+      <BrowserRouter basename="/admin"> {/* Set the base URL for all routes to /admin */}
         <AppRoutes />
       </BrowserRouter>
     </AuthProvider>

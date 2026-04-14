@@ -17,7 +17,7 @@ function Packages(){
 
         fetchPackages();
 
-    }, [packages]);
+    }, []);
     
     return (
     <div className="content">
