@@ -6,6 +6,10 @@ const { authMiddleware, staffMiddleware } = require('../middleware/authMiddlewar
 const { memberRegister, memberCompleteProfile, getMe, memberLogin, staffLogin, logOut, refreshToken, getStaff, googleSuccess, facebookSuccess, forgotPassword, resetPassword, verifyResetCode } = require('../controllers/authControllers');
 const { loginLimiter } = require('../middleware/rateLimit');
 
+router.get('/csrf-token', (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
 // Apply loginLimiter to login endpoints to prevent brute-force attempts
 router.post('/member-login', loginLimiter, memberLogin);
 router.post('/member-register', memberRegister);

@@ -9,6 +9,9 @@ const cors = require('cors');
 const express = require('express');
 const app = express();
 
+const helmet = require('helmet');
+app.use(helmet()); // set security-related HTTP headers 
+
 // trust the proxy headers so req.ip is the real client IP.
 app.set('trust proxy', 1);
 
@@ -18,7 +21,7 @@ const cookieParser = require('cookie-parser');
 
 // Allow request from other port, server
 app.use(cors({
-    origin: ['http://54.169.157.109:3001', 'http://54.169.157.109:5173', 'https://54.169.157.109.nip.io'],
+    origin: ['http://54.169.157.109:3001', 'http://54.169.157.109:5173', 'https://54.169.157.109.nip.io', 'http://localhost:3001', 'http://localhost:5173'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true // Allow cookies or auth header to be sent 
 }));
@@ -29,6 +32,10 @@ app.use(express.json());
 
 app.use(cookieParser());
 // Use cookie parser middleware
+
+
+const csrf = require('csurf');
+app.use(csrf({ cookie: true })); // CSRF protection using cookies
 
 
 
