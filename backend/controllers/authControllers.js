@@ -2,12 +2,19 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const prisma = require('../prismaClient');
 const logger = require('../utils/logger');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/AppError');
 
 const isProd = process.env.NODE_ENV === 'production';
 
 // User-Member Registration
-const memberRegister = async (req, res) => {
+const memberRegister = catchAsync(async (req, res, next) => {
   const {full_name, phone, email, gender, date_of_birth, password } = req.body;
+
+  if (!email || !password) {
+    throw new AppError('Email and password are required', 400);
+  }
+
   const hashedPassword = await bcrypt.hash(password, 10); 
   // 10 is the salt rounds, complexity of the hash
 
@@ -23,37 +30,33 @@ const memberRegister = async (req, res) => {
     }
   });
   res.status(201).json({msg : 'Member registered successfully'});
-};
+});
 
-const memberCompleteProfile = async (req, res) => {
-  try {
-    const { fullName, phone, dob, gender } = req.body;
-    const { userId } = req.user;
+const memberCompleteProfile = catchAsync(async (req, res, next) => {
+  const { fullName, phone, dob, gender } = req.body;
+  const { userId } = req.user;
 
-    await prisma.member.update({
-      where: { id: userId },
-      data: {
-        full_name: fullName,
-        phone,
-        gender,
-        date_of_birth: new Date(dob),
-        isProfileComplete: true,
-      }
-    });
-
-    res.status(200).json({ msg: 'Member Profile Completed' });
-
-  } catch (error) {
-    res.status(500).json({
-      msg: 'Failed to complete profile',
-      error: error.message
-    });
+  if (!userId) {
+    throw new AppError('Unauthorized', 401);
   }
-};
 
-const getMe = async (req, res) => {
+  await prisma.member.update({
+    where: { id: userId },
+    data: {
+      full_name: fullName,
+      phone,
+      gender,
+      date_of_birth: new Date(dob),
+      isProfileComplete: true,
+    }
+  });
+
+  res.status(200).json({ msg: 'Member Profile Completed' });
+});
+
+const getMe = catchAsync(async (req, res) => {
   if (!req.user) {
-    return res.status(401).json({ msg: 'Unauthorized' });
+    throw new AppError('Unauthorized', 401);
   }
 
   const member = await prisma.member.findUnique({
@@ -71,10 +74,10 @@ const getMe = async (req, res) => {
     gender: member.gender,
     isProfileComplete: member.isProfileComplete
   });
-};
+});
 
 // User-Member Login JWT
-const memberLogin = async (req, res) => {
+const memberLogin = catchAsync(async (req, res) => {
   const { email, password } = req.body;
 
   const member = await prisma.member.findUnique({
@@ -82,13 +85,13 @@ const memberLogin = async (req, res) => {
   });
   if (!member) {
     logger.warn('Login failed', { type: 'LOGIN_FAIL', email, ip: req.ip || req.connection?.remoteAddress, status: 401 });
-    return res.status(401).json({ msg: 'Invalid credentials' });
+    throw new AppError('Invalid credentials', 401);
   }
 
   const isPasswordValid  = await bcrypt.compare(password, member.password_hash);
   if(!isPasswordValid) {
     logger.warn('Login failed', { type: 'LOGIN_FAIL', email, ip: req.ip || req.connection?.remoteAddress, status: 401 });
-    return res.status(401).json({ msg: 'Invalid credentials' });
+    throw new AppError('Invalid credentials', 401);
   }
 
   // payload shared between access & refresh tokens
@@ -112,10 +115,10 @@ const memberLogin = async (req, res) => {
 
   res.status(200).json({ msg: 'Login successful', user: { id: member.id, full_name: member.full_name, email: member.email } });
 
-};
+});
 
 // Admin-Staff Login JWT 
-const staffLogin = async (req, res) => {
+const staffLogin = catchAsync(async (req, res) => {
   const { email, password } = req.body;
 
   const staff = await prisma.user.findUnique({
@@ -123,12 +126,12 @@ const staffLogin = async (req, res) => {
   }); 
   if (!staff) {
     logger.warn('Login failed', { type: 'LOGIN_FAIL', email, ip: req.ip || req.connection?.remoteAddress, status: 401 });
-    return res.status(401).json({ msg: 'Invalid credentials' });
+    throw new AppError('Invalid credentials', 401);
   } 
   const isPasswordValid  = await bcrypt.compare(password, staff.password_hash);
   if(!isPasswordValid) {
     logger.warn('Login failed', { type: 'LOGIN_FAIL', email, ip: req.ip || req.connection?.remoteAddress, status: 401 });
-    return res.status(401).json({ msg: 'Invalid credentials' });
+    throw new AppError('Invalid credentials', 401);
   }
 
   // same payload for both tokens
@@ -152,9 +155,9 @@ const staffLogin = async (req, res) => {
 
   res.status(200).json({ msg: 'Login successful', user: { id: staff.id, full_name: staff.full_name, email: staff.email, role: staff.role } });  
 
-};
+});
 
-const getStaff = async (req, res) => {
+const getStaff = catchAsync(async (req, res) => {
   // authMiddleware already assign req.user
   const user = await prisma.user.findUnique({
     where: { id: req.user.staffId },
@@ -166,9 +169,9 @@ const getStaff = async (req, res) => {
     }
   });
   res.status(200).json({ user });
-};
+});
 
-const logOut = (req, res) => {
+const logOut = catchAsync(async (req, res) => {
   res.clearCookie('access_token', {
     httpOnly: true,
     secure: isProd,
@@ -181,16 +184,15 @@ const logOut = (req, res) => {
     sameSite: isProd? 'none': 'lax'
   });
   res.status(200).json({ msg: 'Logged out successfully' });
-};
+});
 
 // issue new access token using refresh token
-const refreshToken = (req, res) => {
+const refreshToken = catchAsync(async (req, res) => {
   const token = req.cookies.refresh_token;
   if (!token) {
-    return res.status(401).json({ msg: 'No refresh token' });
+    throw new AppError('No refresh token', 401);
   }
 
-  try {
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
     // rebuild payload – we simply re-use what was stored
     const { userType, userId, staffId, role } = decoded;
@@ -219,12 +221,9 @@ const refreshToken = (req, res) => {
     });
 
     res.status(200).json({ msg: 'Token refreshed' });
-  } catch (error) {
-    return res.status(403).json({ msg: 'Invalid refresh token', error: error.message });
-  }
-};
+});
 
-const googleSuccess = async (req, res) => {
+const googleSuccess = catchAsync(async (req, res) => {
   const profile = req.user;
 
   const googleId = profile.id;
@@ -297,7 +296,11 @@ const googleSuccess = async (req, res) => {
       sameSite: isProd? 'none': 'lax'
     });
 
-    return res.redirect("http://54.169.157.109.nip.io/complete-profile");
+    if (process.env.NODE_ENV === 'production') {
+      return res.redirect("http://54.169.157.109.nip.io/complete-profile");
+    } else {
+      return res.redirect("http://localhost:3001/complete-profile");
+    }
   }
 
   const token = jwt.sign(
@@ -315,11 +318,14 @@ const googleSuccess = async (req, res) => {
     sameSite: isProd? 'none': 'lax'
   });
 
-  return res.redirect("http://54.169.157.109.nip.io");
+  if(process.env.NODE_ENV === 'production') {
+    return res.redirect("http://54.169.157.109.nip.io");
+  } else {
+    return res.redirect("http://localhost:3001");
+  } 
+});
 
-};
-
-const facebookSuccess = async (req, res) => {
+const facebookSuccess = catchAsync(async (req, res) => {
   const profile = req.user;
 
   const facebookId = profile.id;
@@ -387,17 +393,16 @@ res.cookie("access_token", token, {
 });
 
 return res.redirect("http://54.169.157.109.nip.io");
-};
+});
 
 // Forgot Password - Generate and send reset code
-const forgotPassword = async (req, res) => {
-  try {
+const forgotPassword = catchAsync(async (req, res) => {
     const { email } = req.body;
 
     // Validate email
     if (!email) {
       logger.warn('Forgot password attempt without email', { ip: req.ip });
-      return res.status(400).json({ msg: 'Email is required' });
+      throw new AppError('Email is required', 400);
     }
 
     // Find member by email
@@ -430,26 +435,21 @@ const forgotPassword = async (req, res) => {
 
     if (!emailSent) {
       logger.error('Failed to send password reset email', { email });
-      return res.status(500).json({ msg: 'Failed to send reset code. Please try again later.' });
+      throw new AppError('Failed to send reset code. Please try again later.', 500);
     }
 
     logger.info('Password reset code sent', { email });
     res.status(200).json({ msg: 'If an account exists with this email, a reset code will be sent' });
 
-  } catch (error) {
-    logger.error('Forgot password error', { error: error.message });
-    res.status(500).json({ msg: 'An error occurred. Please try again later.' });
-  }
-};
+});
 
 // Verify reset code and update password
-const resetPassword = async (req, res) => {
-  try {
-    const { email, resetCode, newPassword } = req.body;
+const resetPassword = catchAsync(async (req, res) => {
+  const { email, resetCode, newPassword } = req.body;
 
     // Validate inputs
     if (!email || !resetCode || !newPassword) {
-      return res.status(400).json({ msg: 'Email, reset code, and new password are required' });
+      throw new AppError('Email, reset code, and new password are required', 400);
     }
 
     // Find member
@@ -457,24 +457,21 @@ const resetPassword = async (req, res) => {
       where: { email }
     });
 
-    if (!member) {
-      return res.status(401).json({ msg: 'Invalid email or reset code' });
-    }
 
     // Check if reset code matches and is not expired
     if (member.reset_code !== resetCode) {
       logger.warn('Invalid reset code attempt', { email });
-      return res.status(401).json({ msg: 'Invalid email or reset code' });
+      throw new AppError('Invalid email or reset code', 401);
     }
 
     if (!member.reset_code_expires || new Date() > member.reset_code_expires) {
       logger.warn('Expired reset code attempt', { email });
-      return res.status(401).json({ msg: 'Reset code has expired. Please request a new one.' });
+      throw new AppError('Reset code has expired', 401);
     }
 
     // Validate new password strength (at least 8 characters)
     if (newPassword.length < 8) {
-      return res.status(400).json({ msg: 'Password must be at least 8 characters long' });
+      throw new AppError('Password must be at least 8 characters long', 400);
     }
 
     // Hash new password
@@ -493,19 +490,14 @@ const resetPassword = async (req, res) => {
     logger.info('Password reset successfully', { email });
     res.status(200).json({ msg: 'Password has been reset successfully. Please log in with your new password.' });
 
-  } catch (error) {
-    logger.error('Reset password error', { error: error.message });
-    res.status(500).json({ msg: 'An error occurred. Please try again later.' });
-  }
-};
+});
 
 // Verify reset code (without changing password)
-const verifyResetCode = async (req, res) => {
-  try {
-    const { email, resetCode } = req.body;
+const verifyResetCode = catchAsync(async (req, res) => {
+  const { email, resetCode } = req.body;
 
     if (!email || !resetCode) {
-      return res.status(400).json({ msg: 'Email and reset code are required' });
+      throw new AppError('Email and reset code are required', 400);
     }
 
     const member = await prisma.member.findUnique({
@@ -513,24 +505,20 @@ const verifyResetCode = async (req, res) => {
     });
 
     if (!member) {
-      return res.status(401).json({ msg: 'Invalid email or reset code' });
+      throw new AppError('Invalid email or reset code', 401);
     }
 
     if (member.reset_code !== resetCode) {
-      return res.status(401).json({ msg: 'Invalid reset code' });
+      throw new AppError('Invalid reset code', 401);
     }
 
     if (!member.reset_code_expires || new Date() > member.reset_code_expires) {
-      return res.status(401).json({ msg: 'Reset code has expired' });
+      throw new AppError('Reset code has expired', 401);
     }
 
     res.status(200).json({ msg: 'Reset code is valid' });
 
-  } catch (error) {
-    logger.error('Verify reset code error', { error: error.message });
-    res.status(500).json({ msg: 'An error occurred. Please try again later.' });
-  }
-};
+});
 
 module.exports = {
   memberRegister,

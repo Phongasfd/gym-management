@@ -1,8 +1,9 @@
 const prisma = require('../prismaClient');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/AppError');
 
 // Get all classes
-const getAllClasses = async (req, res) => {
-  try {
+const getAllClasses = catchAsync(async (req, res) => {
 
     const classes = await prisma.class.findMany(
       {
@@ -18,13 +19,9 @@ const getAllClasses = async (req, res) => {
     );
     res.status(200).json(classes);
     
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+});
 
-const getTodayClassesStats = async (req, res) => {
-  try {
+const getTodayClassesStats = catchAsync(async (req, res) => {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
@@ -65,14 +62,11 @@ const getTodayClassesStats = async (req, res) => {
         bookedSlots: cls._count.bookings,
       })),
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+  }); 
 
 
-const getClassMembers = async (req, res) => {
-  try {
+const getClassMembers = catchAsync(async (req, res) => {
+ 
     const { id } = req.params;
   
     const bookings = await prisma.booking.findMany({
@@ -91,33 +85,26 @@ const getClassMembers = async (req, res) => {
     
     const members = bookings.map( booking => booking.member );  
     res.status(200).json(members);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
 
-};
+
+});
 
 
 // Get class by ID
-const getClasById = async (req, res) => {
-  try {
+const getClasById = catchAsync( async (req, res) => {
     const { id } = req.params;
     const classItem = await prisma.class.findUnique({
       where: { id: id }
     });
     if(!classItem){
-      return res.status(404).json({ error: 'Class not found' });
+      throw new AppError('Class not found', 404);
     }
     res.status(200).json(classItem);
     
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+});
 
 // Create a new class
-const createClass = async (req, res) => {
-  try {
+const createClass = catchAsync(async (req, res) => {
     const {name, coach_name, schedule_time, capacity} = req.body;
     const newClass = await prisma.class.create({
       data: {
@@ -129,14 +116,11 @@ const createClass = async (req, res) => {
     });
     res.status(201).json(newClass);
 
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+});
 
 // Update class by ID
-const updateClass = async (req, res) => {
-  try {
+const updateClass = catchAsync(async (req, res) => {
+
     const { id } = req.params;
     const { name, coach_name, schedule_time, capacity } = req.body;
     const updatedClass = await prisma.class.update({
@@ -150,24 +134,18 @@ const updateClass = async (req, res) => {
     });
     res.status(200).json(updatedClass);
 
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+
+});
 
 // Delete class by ID
-const deleteClass = async (req, res) => {
-  try {
-    const { id } = req.params;
-    await prisma.class.delete({
-      where: { id: id }
-    });
-    res.status(200).json({ error: 'Class deleted successfully'});
-    
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+const deleteClass = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  await prisma.class.delete({
+    where: { id: id }
+  });
+  res.status(200).json({ error: 'Class deleted successfully'});
+
+});
 
 module.exports = {
   getAllClasses,

@@ -38,11 +38,20 @@ async function chatWithAI(messages) {
     const response = await client.chat.completions.create({
       model: 'gpt-4o-mini',
       temperature: 0.7,
+      // Điều chỉnh độ “sáng tạo” của AI
+      // 0 → rất logic, ít sáng tạo
+      // 1 → sáng tạo hơn
       messages: [
         { role: 'system', content: CHAT_SYSTEM_PROMPT },
         ...messages
       ],
+      // system → luật chơi / tính cách AI
+      // user → câu hỏi người dùng
+      // assistant → câu trả lời trước đó của AI
       max_tokens: 500
+      // Giới hạn độ dài output
+      // càng lớn → trả lời càng dài
+      // 500 = vừa đủ cho đa số câu trả lời
     });
 
     return response.choices[0].message.content;

@@ -1,6 +1,8 @@
 const { VNPay, ignoreLogger, ProductCode, VnpLocale, dateFormat } = require('vnpay'); 
 const prisma = require('../prismaClient');
 const logger = require('../utils/logger');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/AppError');
 
 function restoreUUID(str) {
   return str.replace(
@@ -18,7 +20,7 @@ const vnpay = new VNPay({
   loggerFn: ignoreLogger,
 });
 
-const vnPay = async (req, res) => {
+const vnPay = catchAsync(async (req, res) => {
 
   const { packageId } = req.body;
   const userId = req.user.userId; 
@@ -28,7 +30,7 @@ const vnPay = async (req, res) => {
   });
 
   if (!pkg) {
-    return res.status(404).json({ message: 'Package not found' });
+    throw new AppError('Package not found', 404);
   }
 
   const subscription = await prisma.subscription.create({
@@ -76,9 +78,9 @@ const vnPay = async (req, res) => {
   });
 
   return res.status(201).json(vnpayResponse); 
-};
+});
 
-const vnPayReturn = async (req, res) => {
+const vnPayReturn = catchAsync(async (req, res) => {
   // Determine front‑end base URL once (can be overridden via env)
   const FRONTEND_URL = process.env.FRONTEND_URL || 'http://54.169.157.109.nip.io';
 
@@ -118,9 +120,9 @@ const vnPayReturn = async (req, res) => {
 
   logger.info('Payment callback success', { type: 'PAYMENT_SUCCESS', orderId: vnp_TxnRef, status: vnp_ResponseCode });
   return res.redirect(`${FRONTEND_URL}/payment-success`);
-}; 
+}); 
 
-const vnPayIPN = async (req, res) => {
+const vnPayIPN = catchAsync(async (req, res) => {
 
   const verify = vnpay.verifyIpnCall(req.query);
 
@@ -182,7 +184,7 @@ const vnPayIPN = async (req, res) => {
   }
 
   return res.json({ RspCode: '00', Message: 'Confirm Success' });
-};
+});
 
 module.exports = {
   vnPay,

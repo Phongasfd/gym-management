@@ -1,18 +1,19 @@
 const prisma = require('../prismaClient');
 const bcrypt = require('bcryptjs');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/AppError');
 
 // updatePassword for staff account
-const updatePassword = async (req, res) => {
-  try {
+const updatePassword = catchAsync(async (req, res) => {
   const userId = req.user.staffId;
   const { currentPassword, newPassword, confirm } = req.body;
 
   if (!currentPassword || !newPassword) {
-    return res.status(400).json({ msg: 'Missing required fields' });
+    throw new AppError('Missing required fields', 400);
   }
 
   if (newPassword !== confirm) {
-    return res.status(400).json({ msg: 'Passwords do not match' });
+    throw new AppError('Passwords do not match', 400);
   }
 
   const user = await prisma.user.findUnique({
@@ -20,14 +21,14 @@ const updatePassword = async (req, res) => {
   });
 
   if(!user){
-    return res.status(404).json({ msg: 'User not found' });
+    throw new AppError('User not found', 404);
   }
 
   // compare currentPassword
   const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
 
   if (!isMatch) {
-    return res.status(400).json({ msg: 'Current password is incorrect' });
+    throw new AppError('Current password is incorrect', 400);
   }
 
   // hash new password and update 
@@ -40,12 +41,8 @@ const updatePassword = async (req, res) => {
 
   return res.status(200).json({ msg: 'Updated successfully' });
 
- } catch (err) {
-  console.error("Update password failed:", err);
-  return res.status(500).json({ msg: 'Server error' });
-}
 
-};
+});
 
 module.exports = {
   updatePassword

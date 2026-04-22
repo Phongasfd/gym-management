@@ -1,20 +1,16 @@
 const prisma = require('../prismaClient');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/AppError');
 
 // Get all checkins
-const getAllCheckins = async (req, res) => {
-  try {
+const getAllCheckins = catchAsync(async (req, res) => {
     const checkins = await prisma.checkin.findMany();
     res.status(200).json(checkins);
     
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+});
 
 // Create new checkins
-const createCheckin = async (req, res) => {
-  try {
-
+const createCheckin = catchAsync(async (req, res) => {
     const {member_id, checkin_time, source} = req.body;
     const newCheckin = await prisma.checkin.create({
       data: {
@@ -25,10 +21,7 @@ const createCheckin = async (req, res) => {
     });
     res.status(201).json(newCheckin);
     
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+});
 
 module.exports = {
   getAllCheckins,

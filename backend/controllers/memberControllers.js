@@ -1,8 +1,10 @@
 const prisma = require('../prismaClient');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/AppError');
 
 // Create a new member
-const createMember = async (req, res) => {
-  try {
+const createMember = catchAsync(async (req, res) => {
+
     const { full_name, phone, email, gender, date_of_birth } = req.body;
     const member = await prisma.member.create({
       data: {
@@ -14,14 +16,11 @@ const createMember = async (req, res) => {
       }
     });
     res.status(201).json(member);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+
+});
 
 // Get all members
-const getAllMembers = async (req, res) => {
-  try {
+const getAllMembers = catchAsync(async (req, res) => {
     const { count } = req.query;
     const now = new Date();
 
@@ -42,13 +41,10 @@ const getAllMembers = async (req, res) => {
 
     const members = await prisma.member.findMany();
     res.status(200).json(members);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
 
-const getMembersOverview = async (req, res) => {
-  try {
+});
+
+const getMembersOverview = catchAsync(async (req, res) => {
   
     const page = Math.max(parseInt(req.query.page) || 1, 1);
     const limit = Math.max(parseInt(req.query.limit) || 10, 1);
@@ -131,33 +127,24 @@ const getMembersOverview = async (req, res) => {
         totalPages: Math.ceil(total / limit),
       },
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
-  }
-};
+
+});
 
 
 // Get a member by ID
-const getMemberById = async (req, res) => {
-  try {
+const getMemberById = catchAsync(async (req, res) => {
     const { id } = req.params;
     const member = await prisma.member.findUnique({
       where: { id: id },
     });
     if(!member){
-      return res.status(404).json({ error: 'Member not found' });
+      throw new AppError('Member not found', 404);
     }
     res.status(200).json(member);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+});
 
 // Update a member by ID
-const updateMemberById = async (req, res) => {
-  try { 
-    
+const updateMemberById = catchAsync(async (req, res) => {
     const { id } = req.params;
     const { full_name, phone, email, gender, date_of_birth } = req.body;
     const member = await prisma.member.update({
@@ -172,10 +159,7 @@ const updateMemberById = async (req, res) => {
     });
     res.status(200).json(member);
 
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+});
 
 
 

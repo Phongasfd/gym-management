@@ -1,55 +1,45 @@
 const prisma = require('../prismaClient');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/AppError');
 
 // Get all bookings
-const getAllBookings = async (req, res) => {
-  try {
-    
+const getAllBookings = catchAsync(async (req, res) => {
+  
     const bookings = await prisma.booking.findMany();
     res.status(200).json(bookings);
     
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+
+});
 
 // Get booking by ID
-const getBookingById = async (req, res) => {
-  try {
+const getBookingById = catchAsync(async (req, res) => {
     const { id } = req.params;
     const booking = await prisma.booking.findUnique({
       where: { id: id }
     });
     if (!booking) {
-      return res.status(404).json({ error: 'Booking not found' });
+      throw new AppError('Booking not found', 404);
     }
     res.status(200).json(booking);
     
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+});
 
 // Get booking by ID
-const getBookingByUserId = async (req, res) => {
-  try {
+const getBookingByUserId = catchAsync(async (req, res) => {
     const id = req.user.userId;
 
     const booking = await prisma.booking.findMany({
       where: { member_id: id }
     });
     if (!booking) {
-      return res.status(404).json({ error: 'Booking not found' });
+      throw new AppError('Booking not found', 404);
     }
     res.status(200).json(booking);
     
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+});
 
 // Member booking
-const createBooking = async (req, res) => {
-  try {
+const createBooking = catchAsync(async (req, res) => {
     const { class_id, status } = req.body;
     const member_id = req.user.userId; 
     const newBooking = await prisma.booking.create({
@@ -60,14 +50,10 @@ const createBooking = async (req, res) => {
       }
     });
     res.status(201).json(newBooking);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+});
 
 // Update booking by ID
-const updateBooking = async (req, res) => {
-  try {
+const updateBooking = catchAsync(async (req, res) => {
     const { id } = req.params;
     const { class_id, member_id, status } = req.body;
     const updatedBooking = await prisma.booking.update({
@@ -80,10 +66,8 @@ const updateBooking = async (req, res) => {
     });
     res.status(200).json(updatedBooking);
 
-  }catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+
+});
 
 module.exports = {
   getAllBookings,

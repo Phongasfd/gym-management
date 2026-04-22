@@ -8,12 +8,12 @@ const level = env === 'production' ? 'info' : 'debug';
 const logger = createLogger({
   level,
   format: format.combine(
-    format.timestamp(),
-    format.errors({ stack: true }),
-    format.json()
-  ),
-  transports: [new transports.Console()],
-  exitOnError: false,
+    format.timestamp(), // add ISO timestamp
+    format.errors({ stack: true }), // include stack trace for errors
+    format.json() // output logs in JSON format
+  ), 
+  transports: [new transports.Console()], // log sẽ được gửi đi đâu
+  exitOnError: false, // log lỗi → vẫn tiếp tục chạy app
 });
 
 module.exports = logger;
