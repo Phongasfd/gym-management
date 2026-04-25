@@ -5,19 +5,19 @@ import styles from '@/styles/Chatbot.module.css';
 import { chatWithAI } from '@/lib/api';
 
 const Chatbot = () => {
-  const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([
+  const [open, setOpen] = useState(false); // open/close chat 
+  const [messages, setMessages] = useState([ // chat history 
     {
       role: 'assistant',
       content: 'Hi! I\'m your gym fitness assistant. I can help you with questions about diet, workout programs, gym packages, and general fitness advice. What would you like to know?'
     }
   ]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+  const [input, setInput] = useState(''); // user input
+  const [loading, setLoading] = useState(false); // waiting for AI response
+  const messagesEndRef = useRef(null); // ref to scroll to bottom of chat, dont change when re-rendering
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); // messagesEndRef.current = DOM của <div /> ở cuối danh sách chat
   };
 
   useEffect(() => {

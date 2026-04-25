@@ -43,7 +43,7 @@ async function chatWithAI(messages) {
       // 1 → sáng tạo hơn
       messages: [
         { role: 'system', content: CHAT_SYSTEM_PROMPT },
-        ...messages
+        ...messages // chat history 
       ],
       // system → luật chơi / tính cách AI
       // user → câu hỏi người dùng
