@@ -99,6 +99,9 @@ if(process.env.NODE_ENV !== 'test') {
 }
 
 // global error handler (must be added after all routes)
+const swaggerDocs = require('./config/swagger');
+swaggerDocs(app);
+
 const errorHandler = require('./middleware/errorHandler');
 app.use(errorHandler);
 
