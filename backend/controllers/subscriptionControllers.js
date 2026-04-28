@@ -1,6 +1,7 @@
 const prisma = require('../prismaClient');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
+const { updateExpiredSubscriptions } = require('../services/subscriptionService');
 
 // Create a new subscription
 const createSubscription = catchAsync(async (req, res) => {
@@ -19,6 +20,9 @@ const createSubscription = catchAsync(async (req, res) => {
 
 // Get all subscriptions
 const getSubscriptions = catchAsync(async (req, res) => {
+    // Update expired subscriptions based on end_date
+    await updateExpiredSubscriptions();
+    
     const subscriptions = await prisma.subscription.findMany();
     res.status(200).json(subscriptions);
 
@@ -55,6 +59,10 @@ const getSubscriptionById = catchAsync(async (req, res) => {
 // Get a subscription by ID
 const getSubscriptionByUserId = catchAsync(async (req, res) => {
     const id = req.user.userId;
+    
+    // Update expired subscriptions based on end_date
+    await updateExpiredSubscriptions();
+    
     const subscription = await prisma.subscription.findMany({
       where: { member_id: id }
     });

@@ -10,6 +10,14 @@ function Login(){
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    let link = null;
+
+    if(process.env.NODE_ENV === 'production') {
+        link = 'http://54.169.157.109:3000/api/auth/google'; 
+    }else {
+        link = 'http://localhost:3000/api/auth/google';
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -44,7 +52,7 @@ function Login(){
                 {/* <!-- OAuth Section --> */}
                 <div className="oauth-section">
                     <div className="oauth-buttons">
-                        <a href="http://54.169.157.109:3000/api/auth/google" className="oauth-btn google">
+                        <a href={link} className="oauth-btn google">
                             <i className="fab fa-google oauth-icon"></i>
                             <span>Continue with Google</span>
                         </a>

@@ -17,7 +17,7 @@ const axiosRaw = axios.create({
 let csrfToken = null;
 
 export const fetchCsrfToken = async () => {
-  const res = await axiosRaw.get("/csrf-token");
+  const res = await axiosRaw.get("/auth/csrf-token");
   csrfToken = res.data.csrfToken;
   return csrfToken;
 };
