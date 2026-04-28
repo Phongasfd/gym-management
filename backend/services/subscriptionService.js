@@ -2,7 +2,6 @@ const prisma = require('../prismaClient');
 
 /**
  * Update subscriptions with expired status when end_date has passed
- * @returns {Promise<number>} Number of subscriptions updated
  */
 const updateExpiredSubscriptions = async () => {
   const now = new Date();

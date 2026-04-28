@@ -30,8 +30,6 @@ Always respond helpfully and stay in character as a gym fitness assistant.`;
 
 /**
  * Handle conversational chat with the AI assistant
- * @param {Array} messages - Array of message objects with role and content
- * @returns {Promise<string>} AI response text
  */
 async function chatWithAI(messages) {
   try {

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllBookings, getBookingById, getBookingByUserId, createBooking, updateBooking } = require('../controllers/bookingControllers');
+const { getAllBookings, getBookingById, getBookingByUserId, createBooking, updateBooking, cancelBooking, deleteBooking } = require('../controllers/bookingControllers');
 const { authMiddleware, staffMiddleware } = require('../middleware/authMiddleware');
 
 /**
@@ -112,7 +112,49 @@ router.post('/', authMiddleware, createBooking);
  *       200:
  *         description: Success
  */
-router.get('/:id', authMiddleware, staffMiddleware, updateBooking);
+router.patch('/:id', authMiddleware, updateBooking);
+
+// POST   /api/bookings/:id/cancel
+/**
+ * @swagger
+ * /api/bookings/{id}/cancel:
+ *   post:
+ *     summary: Cancel a booking
+ *     tags: [Bookings]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Booking cancelled successfully
+ */
+router.post('/:id/cancel', authMiddleware, cancelBooking);
+
+// DELETE /api/bookings/:id (admin only)
+/**
+ * @swagger
+ * /api/bookings/{id}:
+ *   delete:
+ *     summary: Delete a booking (admin only)
+ *     tags: [Bookings]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Booking deleted successfully
+ */
+router.delete('/:id', authMiddleware, staffMiddleware, deleteBooking);
 
 
 module.exports = router;

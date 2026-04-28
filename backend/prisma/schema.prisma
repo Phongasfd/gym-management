@@ -116,9 +116,10 @@ model Booking {
   status     String
   created_at DateTime @default(now())
 
-  member Member @relation(fields: [member_id], references: [id])
-  class  Class  @relation(fields: [class_id], references: [id])
+  member Member @relation(fields: [member_id], references: [id], onDelete: Cascade)
+  class  Class  @relation(fields: [class_id], references: [id], onDelete: Cascade)
 
+  @@unique([member_id, class_id]) // Prevent duplicate bookings for same class
   @@index([member_id])
   @@index([class_id])
 }

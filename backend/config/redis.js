@@ -1,6 +1,6 @@
 const redis = require('redis');
 
-// Use REDIS_URL env var if provided (e.g. redis://:password@redis:6379 in docker-compose)
+// Use REDIS_URL env var if provided 
 // Falls back to local redis without password if not provided
 const redisUrl = process.env.REDIS_URL; 
 
