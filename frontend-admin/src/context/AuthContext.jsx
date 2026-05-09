@@ -15,8 +15,7 @@ export const AuthProvider = ({ children }) => {
   
     const load = async () => {
       try {
-        // try to refresh tokens first
-        await axiosClient.get('/auth/refresh-token', { withCredentials: true }).catch(() => {});
+        // rely on interceptor to refresh on 401 when requesting the protected endpoint
         const res = await axiosClient.get('/auth/staff', {
           withCredentials: true,
         });

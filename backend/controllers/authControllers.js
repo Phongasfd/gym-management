@@ -1,11 +1,22 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const prisma = require('../prismaClient');
 const logger = require('../utils/logger');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
 
 const isProd = process.env.NODE_ENV === 'production';
+
+const REFRESH_TTL_DAYS = parseInt(process.env.REFRESH_TTL_DAYS || '7', 10);
+// parse env variable or default to 7 days, ensure it's an decimal integer
+function generateRefreshToken() {
+  return crypto.randomBytes(64).toString('hex');
+}
+
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
 
 // User-Member Registration
 const memberRegister = catchAsync(async (req, res, next) => {
@@ -97,7 +108,21 @@ const memberLogin = catchAsync(async (req, res) => {
   // payload shared between access & refresh tokens
   const payload = { userType: "member", userId: member.id };
   const access = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
-  const refresh = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { expiresIn: '7d' });
+  // create opaque refresh token, store hashed in DB for rotation
+  const refreshTokenRaw = generateRefreshToken();
+  const refreshHash = hashToken(refreshTokenRaw);
+  const expiresAt = new Date(Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000);
+
+  await prisma.refreshToken.create({
+    data: {
+      user_id: member.id,
+      user_type: 'member',
+      token_hash: refreshHash,
+      expires_at: expiresAt,
+      created_by_ip: req.ip || req.connection?.remoteAddress,
+      user_agent: req.get('User-Agent') || null
+    }
+  });
 
   // Send tokens in HTTP-only cookies
   res.cookie('access_token', access, {
@@ -106,11 +131,11 @@ const memberLogin = catchAsync(async (req, res) => {
     sameSite: isProd? 'none': 'lax', // CSRF protection
     maxAge: 15 * 60 * 1000 // 15 minutes
   });
-  res.cookie('refresh_token', refresh, {
+  res.cookie('refresh_token', refreshTokenRaw, {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd? 'none': 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    maxAge: REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000 // days
   });
 
   res.status(200).json({ msg: 'Login successful', user: { id: member.id, full_name: member.full_name, email: member.email } });
@@ -137,7 +162,21 @@ const staffLogin = catchAsync(async (req, res) => {
   // same payload for both tokens
   const payload = { userType: "staff", staffId: staff.id, role: staff.role };
   const access = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
-  const refresh = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { expiresIn: '7d' });
+  // create opaque refresh token, store hashed in DB for rotation
+  const refreshTokenRaw = generateRefreshToken();
+  const refreshHash = hashToken(refreshTokenRaw);
+  const expiresAt = new Date(Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000);
+
+  await prisma.refreshToken.create({
+    data: {
+      user_id: staff.id,
+      user_type: 'staff',
+      token_hash: refreshHash,
+      expires_at: expiresAt,
+      created_by_ip: req.ip || req.connection?.remoteAddress,
+      user_agent: req.get('User-Agent') || null
+    }
+  });
 
   // Send in cookies
   res.cookie('access_token', access, {
@@ -146,11 +185,11 @@ const staffLogin = catchAsync(async (req, res) => {
     sameSite: isProd? 'none': 'lax', // CSRF protection
     maxAge: 15 * 60 * 1000 // 15 minutes
   });
-  res.cookie('refresh_token', refresh, {
+  res.cookie('refresh_token', refreshTokenRaw, {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd? 'none': 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000
+    maxAge: REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000
   });
 
   res.status(200).json({ msg: 'Login successful', user: { id: staff.id, full_name: staff.full_name, email: staff.email, role: staff.role } });  
@@ -178,6 +217,16 @@ const logOut = catchAsync(async (req, res) => {
     sameSite: isProd? 'none': 'lax'
   });
   // also clear refresh token when logging out
+  // revoke refresh token in DB if present
+  const incoming = req.cookies.refresh_token;
+  if (incoming) {
+    try {
+      const h = hashToken(incoming);
+      await prisma.refreshToken.updateMany({ where: { token_hash: h }, data: { revoked: true } });
+    } catch (e) {
+      // ignore
+    }
+  }
   res.clearCookie('refresh_token', {
     httpOnly: true,
     secure: isProd,
@@ -185,42 +234,77 @@ const logOut = catchAsync(async (req, res) => {
   });
   res.status(200).json({ msg: 'Logged out successfully' });
 });
-
-// issue new access token using refresh token
+// issue new access token using opaque refresh token (rotation)
 const refreshToken = catchAsync(async (req, res) => {
-  const token = req.cookies.refresh_token;
-  if (!token) {
+  const incoming = req.cookies.refresh_token;
+  if (!incoming) {
     throw new AppError('No refresh token', 401);
   }
 
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
-    // rebuild payload – we simply re-use what was stored
-    const { userType, userId, staffId, role } = decoded;
-    const payload = { userType };
-    if (userId) payload.userId = userId;
-    if (staffId) {
-      payload.staffId = staffId;
-      payload.role = role;
+  const tokenHash = hashToken(incoming);
+  const tokenRecord = await prisma.refreshToken.findFirst({ where: { token_hash: tokenHash } });
+  if (!tokenRecord) {
+    throw new AppError('Invalid refresh token', 401);
+  }
+
+  if (tokenRecord.revoked) {
+    // token reuse or revoked; revoke all sessions for this user
+    await prisma.refreshToken.updateMany({ where: { user_id: tokenRecord.user_id }, data: { revoked: true } });
+    throw new AppError('Refresh token revoked', 401);
+  }
+
+  if (new Date() > tokenRecord.expires_at) {
+    await prisma.refreshToken.updateMany({ where: { id: tokenRecord.id }, data: { revoked: true } });
+    throw new AppError('Refresh token expired', 401);
+  }
+
+  // build payload from user_type and id
+  const payload = {};
+  if (tokenRecord.user_type === 'member') {
+    payload.userType = 'member';
+    payload.userId = tokenRecord.user_id;
+  } else if (tokenRecord.user_type === 'staff') {
+    payload.userType = 'staff';
+    payload.staffId = tokenRecord.user_id;
+    // try to include role if available
+    const staff = await prisma.user.findUnique({ where: { id: tokenRecord.user_id } });
+    if (staff) payload.role = staff.role;
+  }
+
+  const access = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
+
+  // rotate refresh token: create a new one and revoke the old
+  const newRaw = generateRefreshToken();
+  const newHash = hashToken(newRaw);
+  const expiresAt = new Date(Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000);
+
+  const newRecord = await prisma.refreshToken.create({
+    data: {
+      user_id: tokenRecord.user_id,
+      user_type: tokenRecord.user_type,
+      token_hash: newHash,
+      expires_at: expiresAt,
+      created_by_ip: req.ip || req.connection?.remoteAddress,
+      user_agent: req.get('User-Agent') || null
     }
+  });
 
-    const access = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
-    // Optionally rotate refresh token by issuing a new one
-    const refresh = jwt.sign(payload, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { expiresIn: '7d' });
+  await prisma.refreshToken.update({ where: { id: tokenRecord.id }, data: { revoked: true, replaced_by: newRecord.id } });
 
-    res.cookie('access_token', access, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd? 'none': 'lax',
-      maxAge: 15 * 60 * 1000
-    });
-    res.cookie('refresh_token', refresh, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd? 'none': 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+  res.cookie('access_token', access, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd? 'none': 'lax',
+    maxAge: 15 * 60 * 1000
+  });
+  res.cookie('refresh_token', newRaw, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd? 'none': 'lax',
+    maxAge: REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000
+  });
 
-    res.status(200).json({ msg: 'Token refreshed' });
+  res.status(200).json({ msg: 'Token refreshed' });
 });
 
 const googleSuccess = catchAsync(async (req, res) => {
@@ -274,15 +358,20 @@ const googleSuccess = catchAsync(async (req, res) => {
       { expiresIn: "15m" }
     );
 
-    const refresh_token = jwt.sign(
-      {
-        userId: member.id,
-        userType: "member",
-        needCompleteProfile: true
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    // create opaque refresh token for social incomplete-flow
+    const refreshTokenRaw = generateRefreshToken();
+    const refreshHash = hashToken(refreshTokenRaw);
+    const expiresAt = new Date(Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000);
+    await prisma.refreshToken.create({
+      data: {
+        user_id: member.id,
+        user_type: 'member',
+        token_hash: refreshHash,
+        expires_at: expiresAt,
+        created_by_ip: req.ip || req.connection?.remoteAddress,
+        user_agent: req.get('User-Agent') || null
+      }
+    });
 
     res.cookie("access_token", access_token, {
       httpOnly: true,
@@ -290,7 +379,7 @@ const googleSuccess = catchAsync(async (req, res) => {
       sameSite: isProd? 'none': 'lax'
     });
 
-    res.cookie("refresh_token", refresh_token, {
+    res.cookie("refresh_token", refreshTokenRaw, {
       httpOnly: true,
       secure: isProd,
       sameSite: isProd? 'none': 'lax'
@@ -312,7 +401,27 @@ const googleSuccess = catchAsync(async (req, res) => {
     { expiresIn: "15m" }
   );
 
+  // create and set refresh token for full social login too
+  const refreshTokenRawMain = generateRefreshToken();
+  const refreshHashMain = hashToken(refreshTokenRawMain);
+  const expiresAtMain = new Date(Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000);
+  await prisma.refreshToken.create({
+    data: {
+      user_id: member.id,
+      user_type: 'member',
+      token_hash: refreshHashMain,
+      expires_at: expiresAtMain,
+      created_by_ip: req.ip || req.connection?.remoteAddress,
+      user_agent: req.get('User-Agent') || null
+    }
+  });
+
   res.cookie("access_token", token, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd? 'none': 'lax'
+  });
+  res.cookie("refresh_token", refreshTokenRawMain, {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd? 'none': 'lax'
@@ -368,10 +477,30 @@ if (!isComplete) {
     { expiresIn: "15m" }
   );
 
+  // create opaque refresh token
+  const refreshTokenRaw = generateRefreshToken();
+  const refreshHash = hashToken(refreshTokenRaw);
+  const expiresAt = new Date(Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000);
+  await prisma.refreshToken.create({
+    data: {
+      user_id: member.id,
+      user_type: 'member',
+      token_hash: refreshHash,
+      expires_at: expiresAt,
+      created_by_ip: req.ip || req.connection?.remoteAddress,
+      user_agent: req.get('User-Agent') || null
+    }
+  });
+
   res.cookie("access_token", token, {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax"
+    secure: isProd,
+    sameSite: isProd? 'none': 'lax'
+  });
+  res.cookie("refresh_token", refreshTokenRaw, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd? 'none': 'lax'
   });
 
   return res.redirect("https://54.169.157.109.nip.io/complete-profile");
@@ -386,13 +515,33 @@ const token = jwt.sign(
   { expiresIn: "15m" }
 );
 
-res.cookie("access_token", token, {
-  httpOnly: true,
-  secure: false,
-  sameSite: "lax"
-});
+  // create opaque refresh token for full login
+  const refreshTokenRawMain = generateRefreshToken();
+  const refreshHashMain = hashToken(refreshTokenRawMain);
+  const expiresAtMain = new Date(Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000);
+  await prisma.refreshToken.create({
+    data: {
+      user_id: member.id,
+      user_type: 'member',
+      token_hash: refreshHashMain,
+      expires_at: expiresAtMain,
+      created_by_ip: req.ip || req.connection?.remoteAddress,
+      user_agent: req.get('User-Agent') || null
+    }
+  });
 
-return res.redirect("http://54.169.157.109.nip.io");
+  res.cookie("access_token", token, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd? 'none': 'lax'
+  });
+  res.cookie("refresh_token", refreshTokenRawMain, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd? 'none': 'lax'
+  });
+
+  return res.redirect("http://54.169.157.109.nip.io");
 });
 
 // Forgot Password - Generate and send reset code
