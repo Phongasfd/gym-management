@@ -104,6 +104,7 @@ The project is deployed on AWS EC2 free tier with self-signed SSL certificates.
 
 #### Admin Dashboard
 
+- Staff account created by admin
 - Member oversight and analytics
 - Class scheduling and management
 - Package and subscription configuration
