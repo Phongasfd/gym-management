@@ -1,6 +1,6 @@
 # Gym Management System
 
-A web application for managing gym operations including member registration, class bookings, check-ins, and staff management.
+A web application for managing gym operations including member registration, class bookings, check-ins, and member-staff management.
 
 ## Tech Stack
 
@@ -31,13 +31,52 @@ A web application for managing gym operations including member registration, cla
 
 ## Deployment
 
+-**Admin Portal**: https://54.169.157.109.nip.io/
+-**Gym Page**: https://54.169.157.109.nip.io/admin/
+
 The project is deployed on AWS EC2 free tier with self-signed SSL certificates.
 
-For production deployment:
+## Screenshots
 
-```bash
-docker-compose -f docker-compose.prod.yml up --build -d
-```
+## Admin Portal
+
+### Dashboard
+![Dashboard](docs/images/dashboard.png)
+
+### Members Page
+![Members Page](docs/images/members.png)
+
+### Packages
+![Packages](docs/images/packages.png)
+
+### Classes
+![Classes](docs/images/classes.png)
+
+### Checkins
+![Checkins](docs/images/checkins.png)
+
+## Main Gym Page
+### Home Page
+![Home Page](docs/images/home.png)
+
+### Auth Page
+![Auth Page](docs/images/auth.png)
+
+### Member Portal
+![Member Portal](docs/images/member_portal.png)
+### Class Booking
+![Class Booking](docs/images/class_booking.png)
+
+### Available Packages
+![Available Packages](docs/images/packages_user.png)
+
+### Payment
+![Payment](docs/images/payment.png)
+
+### AI Chatbot
+![AI Chatbot](docs/images/ai_chatbot.png)
+
+
 
 ## Features
 
@@ -55,19 +94,16 @@ docker-compose -f docker-compose.prod.yml up --build -d
 - User registration and authentication (JWT-based)
 - Role-based access control (Admin, Staff, Member)
 - Profile management and password reset
-- Email notifications for account activities
+- Check-in functionality for gym visits
 
 #### Member Portal
 
 - Class browsing and booking system
-- Personal dashboard with booking history
 - Subscription management and renewal
 - Payment processing through VNPay
-- Check-in functionality for gym visits
 
 #### Admin Dashboard
 
-- Staff management (add, edit, remove staff members)
 - Member oversight and analytics
 - Class scheduling and management
 - Package and subscription configuration
@@ -79,23 +115,19 @@ docker-compose -f docker-compose.prod.yml up --build -d
 - Create and schedule gym classes
 - Capacity management and booking limits
 - Class categories and instructor assignment
-- Real-time availability updates
 
 #### Payment & Subscriptions
 
 - Multiple subscription packages
-- Automated billing and renewal reminders
 - VNPay integration for secure payments
-- Payment history and receipts
 
 #### AI Integration
 
-- AI-powered recommendations and insights
+- AI-powered chatbot for recommendations and insights
 
 #### System Features
 
 - Rate limiting for API security
 - Comprehensive logging and error handling
-- Redis caching for performance
 - Docker containerization for easy deployment
 - Database migrations with Prisma
