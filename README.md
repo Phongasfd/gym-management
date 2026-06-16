@@ -31,8 +31,8 @@ A web application for managing gym operations including member registration, cla
 
 ## Deployment
 
--**Admin Portal**: https://54.169.157.109.nip.io
--**Gym Page**: https://54.169.157.109.nip.io/admin
+- **Admin Portal**: https://54.169.157.109.nip.io
+- **Gym Page**: https://54.169.157.109.nip.io/admin
 
 The project is deployed on AWS EC2 free tier with self-signed SSL certificates.
 
