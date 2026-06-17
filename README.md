@@ -128,6 +128,7 @@ The project is deployed on AWS EC2 free tier with self-signed SSL certificates.
 
 #### System Features
 
+- Handle concurrent requests efficiently to prevent race conditions 
 - Rate limiting for API security
 - Comprehensive logging and error handling
 - Docker containerization for easy deployment

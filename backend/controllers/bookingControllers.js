@@ -100,6 +100,7 @@ const createBooking = catchAsync(async (req, res) => {
       return booking;
     }, {
       // Transaction options for better isolation
+      isolationLevel: Prisma.TransactionalIsolationLevel.Serializable, // Highest isolation level to prevent race conditions
       timeout: 10000, // 10 second timeout
       maxWait: 2000   // Max wait time for lock
     }); 
