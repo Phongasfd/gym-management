@@ -56,7 +56,8 @@ const vnPay = catchAsync(async (req, res) => {
   }
 
   const orderId = subscription.id;
-  const amount = pkg.price;
+  // Prisma returns a Decimal; the vnpay lib multiplies this by 100 itself
+  const amount = Number(pkg.price);
 
   logger.info('Creating payment', {
     type: 'PAYMENT_CREATE',
@@ -131,9 +132,10 @@ const vnPayIPN = catchAsync(async (req, res) => {
     return res.json({ RspCode: '97', Message: 'Invalid signature' });
   }
 
-  const { vnp_TxnRef, vnp_ResponseCode, vnp_Amount } = req.query;
+  const { vnp_TxnRef, vnp_ResponseCode } = req.query;
   const originalId = restoreUUID(vnp_TxnRef);
-  const amount = vnp_Amount;
+  // verify.vnp_Amount is already divided by 100; req.query.vnp_Amount is the raw x100 value
+  const amount = Number(verify.vnp_Amount);
 
   const subscription = await prisma.subscription.findUnique({
     where: { id: originalId },
@@ -150,8 +152,9 @@ const vnPayIPN = catchAsync(async (req, res) => {
     return res.json({ RspCode: '02', Message: 'Subscription already confirmed' });
   }
 
-  // Check amount
-  if (subscription.package.price !== Number(vnp_Amount)) {
+  // Check amount (price is a Prisma Decimal, so compare as numbers)
+  if (Number(subscription.package.price) !== amount) {
+    logger.warn('IPN amount mismatch', { type: 'PAYMENT_FAIL', orderId: originalId, amount, status: 'invalid_amount' });
     return res.json({ RspCode: '04', Message: 'Invalid amount' });
   }
 

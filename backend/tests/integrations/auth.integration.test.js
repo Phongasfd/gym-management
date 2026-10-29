@@ -2,20 +2,22 @@ const request = require("supertest");
 const bcrypt = require("bcryptjs");
 const app = require("../../app");
 const prisma = require("../../prismaClient");
+const { csrfAgent } = require("../helpers/csrf");
 
 describe("Auth API - Integration", () => {
   beforeAll(async () => {
     // ensure clean state 
+    await prisma.refreshToken.deleteMany();
     await prisma.user.deleteMany();
 
     // create user
-    const hashedPassword = await bcrypt.hash("Namphong2006@", 10);
+    const hashedPassword = await bcrypt.hash("Password123@", 10);
 
     await prisma.user.create({
       data: {
-        email: "nguyennamphong210@gmail.com",
+        email: "staff@example.com",
         password_hash: hashedPassword,
-        full_name: "Nam Phong",
+        full_name: "Test Staff",
         role: "staff",
       },
     });
@@ -26,11 +28,13 @@ describe("Auth API - Integration", () => {
   });
 
   test("POST /api/auth/staff-login - success", async () => {
-    const res = await request(app)
+    const { agent, csrfToken } = await csrfAgent(app);
+    const res = await agent
       .post("/api/auth/staff-login")
+      .set("X-CSRF-Token", csrfToken)
       .send({
-        email: "nguyennamphong210@gmail.com",
-        password: "Namphong2006@",
+        email: "staff@example.com",
+        password: "Password123@",
       });
 
     expect(res.statusCode).toBe(200);

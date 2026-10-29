@@ -10,7 +10,7 @@ const getAllClasses = catchAsync(async (req, res) => {
         include: {
           _count: {
             select: {
-              bookings: true
+              bookings: { where: { status: { not: 'cancelled' } } }
             }
           }
         },
@@ -38,7 +38,7 @@ const getTodayClassesStats = catchAsync(async (req, res) => {
       include: {
         _count: {
           select: {
-            bookings: true,
+            bookings: { where: { status: { not: 'cancelled' } } },
           },
         },
       },

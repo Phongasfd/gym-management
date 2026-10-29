@@ -19,7 +19,7 @@ function hashToken(token) {
 }
 
 // User-Member Registration
-const memberRegister = catchAsync(async (req, res, next) => {
+const memberRegister = catchAsync(async (req, res) => {
   const {full_name, phone, email, gender, date_of_birth, password } = req.body;
 
   if (!email || !password) {
@@ -43,7 +43,7 @@ const memberRegister = catchAsync(async (req, res, next) => {
   res.status(201).json({msg : 'Member registered successfully'});
 });
 
-const memberCompleteProfile = catchAsync(async (req, res, next) => {
+const memberCompleteProfile = catchAsync(async (req, res) => {
   const { fullName, phone, dob, gender } = req.body;
   const { userId } = req.user;
 
@@ -223,7 +223,7 @@ const logOut = catchAsync(async (req, res) => {
     try {
       const h = hashToken(incoming);
       await prisma.refreshToken.updateMany({ where: { token_hash: h }, data: { revoked: true } });
-    } catch (e) {
+    } catch {
       // ignore
     }
   }

@@ -1,6 +1,5 @@
 const prisma = require('../prismaClient');
 const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/AppError');
 const { updateExpiredSubscriptions } = require('../services/subscriptionService');
 
 // Create a new subscription

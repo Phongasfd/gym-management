@@ -1,20 +1,32 @@
 name: Deploy to EC2
 
+# Runs after "Backend CI" finishes on main. With a plain `push` trigger,
+# github.event.workflow_run is empty and the `if` below skipped every deploy.
 on:
-  push:
+  workflow_run:
+    workflows:
+      - Backend CI
     branches:
       - main
+    types:
+      - completed
+
+concurrency:
+  group: production
+  cancel-in-progress: false
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Lấy code
+      # 1. Lấy code (đúng commit CI vừa kiểm tra)
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       # 2. Login Docker Hub
       - name: Login Docker

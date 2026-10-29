@@ -1,8 +1,14 @@
 const logger = require('../utils/logger');
 const { Prisma } = require('@prisma/client');
 
+// Body fields never written to logs, whatever the route (/staff-login, /update-password, ...)
+const SENSITIVE_FIELDS = ['password', 'currentPassword', 'newPassword', 'confirm', 'confirmPassword', 'resetCode'];
+
+// Express only treats a middleware as an error handler when it declares 4 params
+// eslint-disable-next-line no-unused-vars
 module.exports = function errorHandler(err, req, res, next) {
-  let status = err.status || err.statusCode || 500;
+  // AppError sets status to 'fail'/'error' (a string), so the numeric statusCode must win
+  let status = err.statusCode || (Number.isInteger(err.status) ? err.status : 500);
   let message = err.message || 'Internal server error';
 
   // ===== Handle Prisma Errors =====
@@ -13,11 +19,12 @@ module.exports = function errorHandler(err, req, res, next) {
   }
 
   // ===== Sanitize sensitive data =====
-  const sensitiveRoutes = ['/login', '/register'];
   const sanitizedBody = { ...req.body }; // shallow copy of request body
 
-  if (sensitiveRoutes.some(route => req.originalUrl.includes(route))) {  // check if the request URL contains any of the sensitive routes
-    delete sanitizedBody.password;
+  for (const field of SENSITIVE_FIELDS) {
+    if (field in sanitizedBody) {
+      sanitizedBody[field] = '[REDACTED]';
+    }
   }
 
   // ===== Logging =====

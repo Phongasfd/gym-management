@@ -1,6 +1,32 @@
+const { Prisma } = require('@prisma/client');
 const prisma = require('../prismaClient');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
+
+// Status written for every member booking; cancelled bookings no longer hold a slot
+const ACTIVE_STATUS = 'active';
+const CANCELLED_STATUS = 'cancelled';
+
+const MAX_TX_ATTEMPTS = 3;
+
+// Serializable transactions abort with P2034 when two members race for the last slot.
+// Retrying lets the loser re-run against the committed state (and get "full capacity").
+async function runSerializable(fn) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await prisma.$transaction(fn, {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        timeout: 10000, // 10 second timeout
+        maxWait: 2000   // Max wait time for lock
+      });
+    } catch (err) {
+      const isConflict = err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2034';
+      if (!isConflict || attempt >= MAX_TX_ATTEMPTS) {
+        throw err;
+      }
+    }
+  }
+}
 
 // Get all bookings
 const getAllBookings = catchAsync(async (req, res) => {
@@ -40,13 +66,27 @@ const getBookingByUserId = catchAsync(async (req, res) => {
 
 // Member booking with transaction to prevent double booking
 const createBooking = catchAsync(async (req, res) => {
-    const { class_id, status } = req.body;
+    // status is decided by the server, never by the client
+    const { class_id } = req.body;
     const member_id = req.user.userId;
 
+    if (!class_id) {
+      throw new AppError('class_id is required', 400);
+    }
+
+    const bookingInclude = {
+      member: {
+        select: { id: true, email: true, full_name: true }
+      },
+      class: {
+        select: { id: true, name: true, capacity: true }
+      }
+    };
+
     // Use transaction to ensure atomicity and prevent race conditions
-    // all queries run like a block, if any query fails, the whole transaction rolls back 
-    // tx: transaction client instance, prisma client in transaction scope 
-    const newBooking = await prisma.$transaction(async (tx) => {
+    // all queries run like a block, if any query fails, the whole transaction rolls back
+    // tx: transaction client instance, prisma client in transaction scope
+    const newBooking = await runSerializable(async (tx) => {
       // 1. Check if member already has a booking for this class
       const existingBooking = await tx.booking.findUnique({
         where: {
@@ -57,7 +97,7 @@ const createBooking = catchAsync(async (req, res) => {
         }
       });
 
-      if (existingBooking) {
+      if (existingBooking && existingBooking.status !== CANCELLED_STATUS) {
         throw new AppError('Member already booked for this class', 400);
       }
 
@@ -70,9 +110,9 @@ const createBooking = catchAsync(async (req, res) => {
         throw new AppError('Class not found', 404);
       }
 
-      // 3. Count current bookings for this class
+      // 3. Count bookings that still hold a slot (cancelled ones free their slot)
       const bookingCount = await tx.booking.count({
-        where: { class_id }
+        where: { class_id, status: { not: CANCELLED_STATUS } }
       });
 
       // 4. Check if class is at capacity
@@ -80,32 +120,24 @@ const createBooking = catchAsync(async (req, res) => {
         throw new AppError('Class is at full capacity', 400);
       }
 
-      // 5. Create booking if all checks pass (within transaction, atomic operation)
-      const booking = await tx.booking.create({
+      // 5. Re-activate a cancelled booking (unique member_id+class_id forbids a second row)
+      if (existingBooking) {
+        return tx.booking.update({
+          where: { id: existingBooking.id },
+          data: { status: ACTIVE_STATUS },
+          include: bookingInclude
+        });
+      }
+
+      return tx.booking.create({
         data: {
           member_id,
           class_id,
-          status: status || 'confirmed'
+          status: ACTIVE_STATUS
         },
-        include: {
-          member: {
-            select: { id: true, email: true, full_name: true }
-          },
-          class: {
-            select: { id: true, name: true, capacity: true }
-          }
-        }
+        include: bookingInclude
       });
-
-      return booking;
-    }, {
-      // Transaction options for better isolation
-      isolationLevel: Prisma.TransactionalIsolationLevel.Serializable, // Highest isolation level to prevent race conditions
-      timeout: 10000, // 10 second timeout
-      maxWait: 2000   // Max wait time for lock
-    }); 
-    // Nếu DB bận → chờ tối đa 2s để bắt đầu
-    // Khi đã chạy → phải xong trong 10s
+    });
 
     res.status(201).json(newBooking);
 });
@@ -165,14 +197,14 @@ const cancelBooking = catchAsync(async (req, res) => {
       }
 
       // Check if booking can be cancelled (not already cancelled)
-      if (booking.status === 'cancelled') {
+      if (booking.status === CANCELLED_STATUS) {
         throw new AppError('Booking is already cancelled', 400);
       }
 
       // Cancel the booking
       const updated = await tx.booking.update({
         where: { id },
-        data: { status: 'cancelled' },
+        data: { status: CANCELLED_STATUS },
         include: {
           member: {
             select: { id: true, email: true, full_name: true }

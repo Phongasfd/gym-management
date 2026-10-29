@@ -12,10 +12,19 @@ jest.mock("bcryptjs", () => ({
   hash: jest.fn(),
 }));
 
-const request = require("supertest");
-const app = require("../../app");         
+const app = require("../../app");
 const prisma = require("../../prismaClient");
 const bcrypt = require("bcryptjs");
+const { csrfAgent } = require("../helpers/csrf");
+
+// PATCH through an agent that carries a valid CSRF token
+async function patchPassword(body) {
+  const { agent, csrfToken } = await csrfAgent(app);
+  return agent
+    .patch("/api/staff/update-password")
+    .set("X-CSRF-Token", csrfToken)
+    .send(body);
+}
 
 // Mock auth middleware to always assign req.user
 jest.mock("../../middleware/authMiddleware", () => {
@@ -38,9 +47,7 @@ describe("PATCH /api/staff/update-password - Unit Test", () => {
 
   // Missing required fields
   test("400 - Missing required fields", async () => {
-    const res = await request(app)
-      .patch("/api/staff/update-password")
-      .send({
+    const res = await patchPassword({
         currentPassword: "",
         newPassword: "",
         confirm: "",
@@ -51,9 +58,7 @@ describe("PATCH /api/staff/update-password - Unit Test", () => {
 
   // Passwords do not match
   test("400 - Passwords do not match", async () => {
-    const res = await request(app)
-      .patch("/api/staff/update-password")
-      .send({
+    const res = await patchPassword({
         currentPassword: "oldpass",
         newPassword: "newpass1",
         confirm: "newpass2",
@@ -66,9 +71,7 @@ describe("PATCH /api/staff/update-password - Unit Test", () => {
   test("404 - User not found", async () => {
     prisma.user.findUnique.mockResolvedValue(null);
 
-    const res = await request(app)
-      .patch("/api/staff/update-password")
-      .send({
+    const res = await patchPassword({
         currentPassword: "oldpass",
         newPassword: "newpass",
         confirm: "newpass",
@@ -87,9 +90,7 @@ describe("PATCH /api/staff/update-password - Unit Test", () => {
 
     bcrypt.compare.mockResolvedValue(false);
 
-    const res = await request(app)
-      .patch("/api/staff/update-password")
-      .send({
+    const res = await patchPassword({
         currentPassword: "wrongpass",
         newPassword: "newpass",
         confirm: "newpass",
@@ -111,9 +112,7 @@ describe("PATCH /api/staff/update-password - Unit Test", () => {
 
     prisma.user.update.mockResolvedValue({});
 
-    const res = await request(app)
-      .patch("/api/staff/update-password")
-      .send({
+    const res = await patchPassword({
         currentPassword: "oldpass",
         newPassword: "newpass",
         confirm: "newpass",
@@ -130,9 +129,7 @@ describe("PATCH /api/staff/update-password - Unit Test", () => {
   test("500 - Server error", async () => {
     prisma.user.findUnique.mockRejectedValue(new Error("DB error"));
 
-    const res = await request(app)
-      .patch("/api/staff/update-password")
-      .send({
+    const res = await patchPassword({
         currentPassword: "oldpass",
         newPassword: "newpass",
         confirm: "newpass",

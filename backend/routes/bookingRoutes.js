@@ -23,7 +23,7 @@ const { authMiddleware, staffMiddleware } = require('../middleware/authMiddlewar
  *         description: Success
  */
 // GET    /api/bookings
-router.get('/', authMiddleware, getAllBookings);
+router.get('/', authMiddleware, staffMiddleware, getAllBookings);
 
 // GET    /api/bookings/me
 /**
@@ -112,7 +112,7 @@ router.post('/', authMiddleware, createBooking);
  *       200:
  *         description: Success
  */
-router.patch('/:id', authMiddleware, updateBooking);
+router.patch('/:id', authMiddleware, staffMiddleware, updateBooking);
 
 // POST   /api/bookings/:id/cancel
 /**
