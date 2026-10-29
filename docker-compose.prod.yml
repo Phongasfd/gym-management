@@ -23,7 +23,7 @@ services:
     container_name: gym_backend
     restart: always
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000" # only nginx (443) is public; host-local for debugging
     env_file:
       - ./backend/.env
     depends_on:
@@ -35,7 +35,7 @@ services:
     container_name: gym_frontend_admin
     restart: always
     ports:
-      - "5173:5173"
+      - "127.0.0.1:5173:5173"
     env_file:
       - ./frontend-admin/.env
     depends_on:
@@ -46,7 +46,7 @@ services:
     container_name: gym_frontend_user
     restart: always
     ports:
-      - "3001:3000"
+      - "127.0.0.1:3001:3000"
     env_file:
       - ./frontend-user-next/.env
     depends_on:

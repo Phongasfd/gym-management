@@ -1,6 +1,5 @@
 const prisma = require('../prismaClient');
 const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/AppError');
 
 // Get all checkins
 const getAllCheckins = catchAsync(async (req, res) => {
