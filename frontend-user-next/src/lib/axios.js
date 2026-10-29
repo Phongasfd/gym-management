@@ -39,6 +39,14 @@ axiosClient.interceptors.response.use(
     const originalRequest = error.config;
     if (!originalRequest) return Promise.reject(error);
 
+    // CSRF cookie gone (browser restart, cleared cookies): the cached token no longer matches.
+    // Fetch a fresh token once and retry instead of failing every request until a reload.
+    if (error.response && error.response.status === 403 && error.response.data?.message === 'invalid csrf token' && !originalRequest._csrfRetry) {
+      originalRequest._csrfRetry = true;
+      await fetchCsrfToken();
+      return axiosClient(originalRequest);
+    }
+
     const isAuthEndpoint = (originalRequest.url || '').includes('/auth/refresh-token');
 
     if (error.response && error.response.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
