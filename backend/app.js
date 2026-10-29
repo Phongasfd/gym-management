@@ -34,8 +34,8 @@ app.use(cookieParser());
 // Use cookie parser middleware
 
 
-const csrf = require('csurf');
-app.use(csrf({ cookie: true })); // CSRF protection using cookies
+const { doubleCsrfProtection } = require('./middleware/csrf');
+app.use(doubleCsrfProtection); // CSRF protection (signed double-submit cookie); GET/HEAD/OPTIONS are not checked
 
 
 
