@@ -1,0 +1,13 @@
+{
+  "name": "gym-management-e2e",
+  "private": true,
+  "description": "Browser end-to-end tests: member portal (Next.js) + API (Express) + PostgreSQL",
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@types/node": "20.19.25"
+  }
+}

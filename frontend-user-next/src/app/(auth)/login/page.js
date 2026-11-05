@@ -28,7 +28,8 @@ function Login(){
             // Redirect to main page or dashboard
             window.location.href = '/';
         } catch (err) {
-            setError(err.msg || 'Login failed');
+            // the API answers { message }, e.g. "Invalid credentials"
+            setError(err.message || 'Login failed');
         } finally {
             setLoading(false);
         }

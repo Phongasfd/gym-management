@@ -1,15 +1,20 @@
 name: Deploy to EC2
 
-# Runs after "Backend CI" finishes on main. With a plain `push` trigger,
+# Runs after "CI" finishes on main. With a plain `push` trigger,
 # github.event.workflow_run is empty and the `if` below skipped every deploy.
+#
+# The AWS free-tier instance has expired, so automatic deploys are switched off: they only run
+# when the repository variable DEPLOY_ENABLED is "true" (Settings > Secrets and variables >
+# Actions > Variables), or when started by hand from the Actions tab.
 on:
   workflow_run:
     workflows:
-      - Backend CI
+      - CI
     branches:
       - main
     types:
       - completed
+  workflow_dispatch:
 
 concurrency:
   group: production
@@ -17,7 +22,11 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+          (vars.DEPLOY_ENABLED == 'true' &&
+           github.event.workflow_run.conclusion == 'success' &&
+           github.event.workflow_run.event == 'push') }}
 
     runs-on: ubuntu-latest
 

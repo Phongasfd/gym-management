@@ -19,7 +19,8 @@ export default function CompleteProfilePage() {
     setLoading(true);
     setMessage(null);
     try {
-      await axiosClient.post("/complete-profile", {fullName, phone, dob, gender} );
+      // was POST /complete-profile, which does not exist (the endpoint is PATCH /auth/complete-profile)
+      await axiosClient.patch("/auth/complete-profile", {fullName, phone, dob, gender} );
       setMessage({ type: "success", text: "Profile saved successfully." });
       window.location.href = '/'; 
     } catch (err) {

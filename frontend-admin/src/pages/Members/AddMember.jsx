@@ -17,8 +17,8 @@ function AddMember(){
 
   useEffect(() => {
     const fetchPackages = async () => {
-      const res = await axiosClient.get('/packages');
-      setPackages(res.data || []);
+      const res = await axiosClient.get('/packages?limit=100');
+      setPackages(res.data.data || []);
     }
     fetchPackages();
   }, []);

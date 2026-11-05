@@ -7,17 +7,33 @@ function Packages(){
     const navigate = useNavigate()
 
     const [packages, setPackages] = useState([]);
-    
-    
+    // bumped after a delete/deactivate to load the list again
+    const [version, setVersion] = useState(0);
+
     useEffect(() => {
-        const fetchPackages = async () => {
-        const res = await axiosClient.get('/packages');
-        setPackages(res.data);
-        };
+        let cancelled = false;
+        // staff also see deactivated packages; paginated: { data, nextCursor }
+        axiosClient.get('/packages?include_inactive=true&limit=100').then((res) => {
+            if (!cancelled) setPackages(res.data.data);
+        });
+        return () => { cancelled = true; };
+    }, [version]);
 
-        fetchPackages();
-
-    }, []);
+    const deletePackage = async (pkg) => {
+        try {
+            await axiosClient.delete(`/packages/${pkg.id}`);
+        } catch (err) {
+            // 409 PACKAGE_IN_USE: members bought it, so deactivate instead of deleting
+            if (err?.response?.data?.code === 'PACKAGE_IN_USE') {
+                if (!window.confirm(`${pkg.name} has subscriptions and cannot be deleted. Deactivate it instead?`)) return;
+                await axiosClient.patch(`/packages/${pkg.id}`, { is_active: false });
+            } else {
+                alert(err?.response?.data?.message || 'Failed to delete package');
+                return;
+            }
+        }
+        setVersion((v) => v + 1);
+    };
     
     return (
     <div className="content">
@@ -46,7 +62,7 @@ function Packages(){
                                     <td>{pkg.description}</td>
                                     <td>${pkg.price}</td>
                                     <td><span className={`badge badge-${pkg.is_active ? 'active' : 'inactive'}`}>{pkg.is_active ? 'Active' : 'Inactive'}</span></td>
-                                    <td><button onClick={() => axiosClient.delete(`/packages/${pkg.id}`)} className="btn btn-secondary btn-small">Delete</button></td>
+                                    <td><button onClick={() => deletePackage(pkg)} className="btn btn-secondary btn-small">Delete</button></td>
                                 </tr>
                             ))}
                             

@@ -9,8 +9,9 @@ function Classes(){
 
     useEffect(() => {
         const fetchClasses = async () => {
-            const res = await axiosClient.get('/classes');
-            setClasses(res.data);
+            // paginated: { data, nextCursor }
+            const res = await axiosClient.get('/classes?limit=100');
+            setClasses(res.data.data);
         };
         fetchClasses();
 
@@ -33,6 +34,7 @@ function Classes(){
                         <th>Time</th>
                         <th>Capacity</th>
                         <th>Booked Slots</th>
+                        <th>Waitlist</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -41,9 +43,10 @@ function Classes(){
                         <tr key={cls.id}>
                             <td>{cls.name}</td>
                             <td>{cls.coach_name}</td>
-                            <td>{cls.schedule_time.slice(0,10)}</td>
+                            <td>{cls.schedule_time ? new Date(cls.schedule_time).toLocaleString() : 'TBD'}</td>
                             <td>{cls.capacity}</td>
-                            <td>{cls._count.bookings}</td>
+                            <td>{cls.bookedSlots}</td>
+                            <td>{cls.waitlistCount}</td>
                             <td><button onClick={() => navigate(`/classes/${cls.id}`)} className="btn btn-secondary btn-small">Manage</button></td>
                         </tr>
                     ))}

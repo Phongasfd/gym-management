@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { forgotPassword, verifyResetCode, resetPassword } from '@/lib/api';
 import styles from './page.module.css';
 
@@ -105,10 +106,10 @@ export default function ForgotPassword() {
       <div className={styles["auth-card"]}>
         {/* Header */}
         <div className={styles["auth-header"]}>
-          <a href="/" className={styles["auth-logo"]}>
+          <Link href="/" className={styles["auth-logo"]}>
             <span className={styles["auth-logo-icon"]}></span>
             <span className={styles["auth-logo-text"]}>ELEVATE</span>
-          </a>
+          </Link>
           <h1 className={styles["auth-title"]}>Reset Password</h1>
           <p className={styles["auth-subtitle"]}>
             {step === 1 && "Enter your email to receive a reset code"}

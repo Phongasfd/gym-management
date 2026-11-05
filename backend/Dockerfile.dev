@@ -12,4 +12,5 @@ RUN npx prisma generate
 
 EXPOSE 3000
 
+# tsx watch: restarts on every change, no build step
 CMD ["npm","run","dev"]

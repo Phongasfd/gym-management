@@ -22,7 +22,7 @@ function Profile(){
         }
 
         try {   
-            const res = await axiosClient.patch('/staff/update-password', {
+            await axiosClient.patch('/staff/update-password', {
                 currentPassword,
                 newPassword,
                 confirm

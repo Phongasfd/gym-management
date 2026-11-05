@@ -15,7 +15,7 @@ function Dashboard(){
         const fetchDashboardStats = async () => {
           try {
             const [membersRes, classesRes] = await Promise.all([
-              axiosClient.get('/members?count=active'),
+              axiosClient.get('/members/active-count'),
               axiosClient.get('/classes/today'),
             ]);
       

@@ -30,6 +30,18 @@ services:
       - postgres
       - redis
 
+  # Same image, different process: outbox delivery (waitlist + payment e-mails), VNPay
+  # reconciliation and membership expiry. Safe to scale: it only claims rows with SKIP LOCKED.
+  worker:
+    image: namphong134/gym-backend:latest
+    container_name: gym_worker
+    restart: always
+    command: ["node", "dist/worker.js"]
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - backend # the backend container runs the migrations
+
   frontend-admin:
     image: namphong134/gym-frontend-admin:latest
     container_name: gym_frontend_admin

@@ -13,17 +13,14 @@ function Members(){
     const limit = 10; 
 
     useEffect(() => {
-        fetchMembers();
+        let cancelled = false;
+        axiosClient.get(`/members/overview?page=${page}&limit=${limit}`).then((res) => {
+            if (cancelled) return;
+            setMembers(res.data.data);
+            setTotalPages(res.data.pagination.totalPages);
+        });
+        return () => { cancelled = true; };
     }, [page]);
-
-    const fetchMembers = async () => {
-        const res = await axiosClient.get(
-          `/members/overview?page=${page}&limit=${limit}`
-        );
-    
-        setMembers(res.data.data);
-        setTotalPages(res.data.pagination.totalPages);
-      };
 
       return (
         <div className="content">

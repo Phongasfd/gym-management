@@ -8,7 +8,7 @@ function Features(){
         <div className="container">
             <div className={styles["section-header"]}>
                 <h2 className={styles["section-title"]}>Why Choose Our Platform</h2>
-                <p className={styles["section-subtitle"]}>We've built a fitness ecosystem that adapts to your goals, schedule, and preferences.</p>
+                <p className={styles["section-subtitle"]}>We&apos;ve built a fitness ecosystem that adapts to your goals, schedule, and preferences.</p>
             </div>
             <div className={styles["features-grid"]}>
                 <div className={styles["feature-card"]}>

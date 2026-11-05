@@ -60,6 +60,17 @@ export const fetchTodayClasses = async () => {
   }
 };
 
+// Classes that have not started yet, soonest first (paginated: { data, nextCursor })
+export const fetchUpcomingClasses = async () => {
+  try {
+    const from = new Date().toISOString();
+    const response = await axiosClient.get(`/classes?from=${encodeURIComponent(from)}&limit=50`);
+    return response.data.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
 // Packages API
 export const fetchMySubscriptions = async () => {
   try {
@@ -103,12 +114,20 @@ export const getMyBookings = async () => {
   }
 };
 
-export const createBooking = async (classId) => {
+// The server decides the status. With waitlist=true a full class queues the member instead of
+// answering 409 CLASS_FULL.
+export const createBooking = async (classId, { waitlist = false } = {}) => {
   try {
-    const response = await axiosClient.post('/bookings', {
-      class_id: classId,
-      status: 'active'
-    });
+    const response = await axiosClient.post('/bookings', { class_id: classId, waitlist });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const cancelBooking = async (bookingId) => {
+  try {
+    const response = await axiosClient.post(`/bookings/${bookingId}/cancel`);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;

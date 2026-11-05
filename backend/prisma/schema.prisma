@@ -1,13 +1,9 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Prisma schema. Invariants that Prisma cannot express (CHECK constraints) live in the
+// migrations; see 20261105100000_booking_waitlist_outbox_reconciliation.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl", "debian-openssl-3.0.x"]
-
 }
 
 datasource db {
@@ -15,17 +11,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum BookingStatus {
+  active
+  waitlisted
+  cancelled
+}
+
+enum SubscriptionStatus {
+  pending // created when the member starts a VNPay payment
+  active
+  failed // VNPay reported a failed payment, or it was never paid before the link expired
+  expired
+}
+
+enum TokenUserType {
+  member
+  staff
+}
+
+enum OutboxStatus {
+  pending
+  processing
+  done
+  failed // gave up after the maximum number of attempts (dead letter)
+}
+
 model User {
-  id            String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  email         String   @unique
+  email         String  @unique
   password_hash String
-  full_name     String?  // nullable 
+  full_name     String?
   role          String
-  is_active     Boolean  @default(true)
+  is_active     Boolean @default(true)
 
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 model Package {
@@ -37,53 +58,66 @@ model Package {
   is_active     Boolean  @default(true)
   created_at    DateTime @default(now())
 
-  subscriptions Subscription[] // for querying, fetching the subscription from package, for JOIN 
+  subscriptions Subscription[]
 }
 
-
 model Member {
-  id            String   @id @default(uuid())
+  id String @id @default(uuid())
 
   // OAuth
-  googleId      String?  @unique
-  facebookId    String?  @unique
+  googleId   String? @unique
+  facebookId String? @unique
 
   full_name     String
   phone         String?
-  email         String   @unique
+  email         String    @unique
   gender        String?
   date_of_birth DateTime?
   password_hash String?
 
   // Password reset
-  reset_code    String?
+  reset_code         String? // SHA-256 of the 6-digit code
   reset_code_expires DateTime?
+  reset_attempts     Int       @default(0)
 
   isProfileComplete Boolean @default(false)
 
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   subscriptions Subscription[]
   checkins      Checkin[]
   bookings      Booking[]
 }
 
-
+// A subscription is also the payment order: its id (without dashes) is the VNPay vnp_TxnRef.
 model Subscription {
-  id          String   @id @default(uuid())
-  member_id   String
-  package_id  String
-  start_date  DateTime?
-  end_date    DateTime? 
-  status      String
-  created_at  DateTime @default(now())
+  id         String             @id @default(uuid())
+  member_id  String
+  package_id String
+  start_date DateTime?
+  end_date   DateTime?
+  status     SubscriptionStatus
+  created_at DateTime           @default(now())
+
+  // Payment. `amount` is the package price when the order was created, so a later price change
+  // cannot make a genuine payment fail the amount check.
+  amount             Decimal?
+  vnp_create_date    String? // yyyyMMddHHmmss (GMT+7) sent to VNPay; querydr needs it back
+  vnp_transaction_no String?
+  paid_at            DateTime?
+  failure_reason     String?
+
+  // Reconciliation of orders whose IPN never arrived
+  reconcile_attempts Int       @default(0)
+  next_reconcile_at  DateTime?
 
   member  Member  @relation(fields: [member_id], references: [id])
   package Package @relation(fields: [package_id], references: [id])
 
-  @@index([member_id]) // indexing fk for faster lookups WHERE member_id = ... AND package_id = ...
-  @@index([package_id]) // @@: table-level, @: field-level -> composite indexes 
+  @@index([member_id])
+  @@index([package_id])
+  @@index([status, next_reconcile_at])
 }
 
 model Checkin {
@@ -95,49 +129,76 @@ model Checkin {
   member Member @relation(fields: [member_id], references: [id])
 
   @@index([member_id])
+  @@index([checkin_time])
 }
 
 model Class {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   name          String
-  coach_name    String? 
+  coach_name    String?
   schedule_time DateTime?
-  end_time     DateTime?  
+  end_time      DateTime?
   capacity      Int
-  created_at    DateTime @default(now())
+  // Seats held by `active` bookings. Kept in the same transaction as every booking change and
+  // guarded by CHECK (booked_count BETWEEN 0 AND capacity), so the database itself refuses
+  // to overbook even if application code is wrong.
+  booked_count  Int       @default(0)
+  created_at    DateTime  @default(now())
 
   bookings Booking[]
 }
 
 model Booking {
-  id         String   @id @default(uuid())
-  class_id  String
-  member_id String
-  status     String
-  created_at DateTime @default(now())
+  id            String        @id @default(uuid())
+  class_id      String
+  member_id     String
+  status        BookingStatus
+  // Set when the booking joins the waitlist. The queue is ordered by waitlist_seq, a value from
+  // the "Booking_waitlist_seq" sequence taken while the class row is locked, so it follows the
+  // order in which members actually joined (timestamps from different requests do not).
+  waitlisted_at DateTime?
+  waitlist_seq  BigInt?
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @default(now()) @updatedAt
 
   member Member @relation(fields: [member_id], references: [id], onDelete: Cascade)
   class  Class  @relation(fields: [class_id], references: [id], onDelete: Cascade)
 
-  @@unique([member_id, class_id]) // Prevent duplicate bookings for same class
+  @@unique([member_id, class_id]) // one row per member and class; re-booking re-activates it
   @@index([member_id])
-  @@index([class_id])
+  @@index([class_id, status, waitlist_seq])
 }
 
-// Refresh tokens for long-lived sessions (rotation support)
 model RefreshToken {
-  id         String   @id @default(uuid())
-  user_id    String
-  user_type  String   // 'member' or 'staff'
-  token_hash String
-  revoked    Boolean  @default(false)
-  replaced_by String?
-  expires_at DateTime
-  created_at DateTime @default(now())
+  id            String        @id @default(uuid())
+  user_id       String
+  user_type     TokenUserType
+  token_hash    String
+  revoked       Boolean       @default(false)
+  replaced_by   String?
+  expires_at    DateTime
+  created_at    DateTime      @default(now())
   created_by_ip String?
-  user_agent  String?
+  user_agent    String?
 
   @@index([user_id])
+  @@index([token_hash])
   @@index([expires_at])
 }
 
+// Transactional outbox: events are written in the same transaction as the state change that
+// causes them, then delivered at least once by the worker (src/worker.ts).
+model OutboxEvent {
+  id           String       @id @default(uuid())
+  type         String
+  payload      Json
+  status       OutboxStatus @default(pending)
+  attempts     Int          @default(0)
+  available_at DateTime     @default(now())
+  locked_at    DateTime?
+  last_error   String?
+  created_at   DateTime     @default(now())
+  processed_at DateTime?
+
+  @@index([status, available_at])
+}
