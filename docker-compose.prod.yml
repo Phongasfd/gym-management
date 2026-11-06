@@ -37,6 +37,10 @@ services:
     container_name: gym_worker
     restart: always
     command: ["node", "dist/worker.js"]
+    # The image's HEALTHCHECK probes the API's /health; the worker serves no HTTP, so it would
+    # always be "unhealthy" (and restarted by anything that acts on health).
+    healthcheck:
+      disable: true
     env_file:
       - ./backend/.env
     depends_on:

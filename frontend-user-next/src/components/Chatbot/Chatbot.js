@@ -37,7 +37,10 @@ const Chatbot = () => {
     setLoading(true);
 
     try {
-      const response = await chatWithAI(newMessages);
+      // The API accepts at most 20 turns of 2,000 characters; sending the whole history made
+      // every message fail with 400 after 10 exchanges, or after one long answer.
+      const recent = newMessages.slice(-20).map(({ role, content }) => ({ role, content: content.slice(0, 2000) }));
+      const response = await chatWithAI(recent);
       const assistantMessage = { role: 'assistant', content: response.message };
       setMessages([...newMessages, assistantMessage]);
     } catch (error) {

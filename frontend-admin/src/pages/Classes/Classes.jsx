@@ -9,9 +9,16 @@ function Classes(){
 
     useEffect(() => {
         const fetchClasses = async () => {
-            // paginated: { data, nextCursor }
-            const res = await axiosClient.get('/classes?limit=100');
-            setClasses(res.data.data);
+            // paginated: { data, nextCursor }, at most 100 a page. Follow the cursor: with one page
+            // only, every class after the 100th (the newest ones) was missing from the list.
+            const all = [];
+            let cursor;
+            do {
+                const res = await axiosClient.get('/classes', { params: { limit: 100, cursor } });
+                all.push(...res.data.data);
+                cursor = res.data.nextCursor;
+            } while (cursor);
+            setClasses(all);
         };
         fetchClasses();
 

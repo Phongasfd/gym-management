@@ -66,7 +66,19 @@ jobs:
             -t namphong134/gym-frontend-admin:latest ./frontend-admin
           docker push namphong134/gym-frontend-admin:latest
 
-      # 6. SSH EC2 để deploy
+      # 6. The server runs docker-compose.prod.yml and nginx.conf from ~/gym-management and nothing
+      #    updated them: v2's `worker` service (membership expiry, outbox e-mails, VNPay
+      #    reconciliation) would never have reached a host set up before it. Ship the current ones.
+      - name: Copy compose and nginx config
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.prod.yml,nginx.conf"
+          target: "~/gym-management"
+
+      # 7. SSH EC2 để deploy
       - name: Deploy EC2
         uses: appleboy/ssh-action@v1.0.3
         with:

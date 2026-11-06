@@ -41,7 +41,9 @@ axiosClient.interceptors.response.use(
 
     // CSRF cookie gone (browser restart, cleared cookies): the cached token no longer matches.
     // Fetch a fresh token once and retry instead of failing every request until a reload.
-    if (error.response && error.response.status === 403 && error.response.data?.message === 'invalid csrf token' && !originalRequest._csrfRetry) {
+    // The API answers { code: 'BAD_CSRF' } (v2); the message check alone never matched any more.
+    const badCsrf = error.response?.data?.code === 'BAD_CSRF' || error.response?.data?.message === 'invalid csrf token';
+    if (error.response && error.response.status === 403 && badCsrf && !originalRequest._csrfRetry) {
       originalRequest._csrfRetry = true;
       await fetchCsrfToken();
       return axiosClient(originalRequest);

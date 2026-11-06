@@ -146,6 +146,7 @@ sequenceDiagram
 | IPN as the source of truth, reconciler as backup | The browser redirect can be lost or forged | The reconciler depends on VNPay's `querydr` answers |
 | One schema per endpoint (zod → types → OpenAPI) | Validation, types and docs cannot drift | Response schemas are not declared yet, so the docs describe requests in detail and responses briefly |
 | Keyset (cursor) pagination | Stable under inserts, O(page) | No "jump to page 7"; the members overview keeps offset pages for the admin table |
+| Rate limits fail open | Redis down, restarting or refusing the connection (wrong password) must not take the API with it: each Redis call waits at most 1 s, then the request is served without rate limiting | No rate limiting while Redis is unavailable. Before, an unhandled rejection from the Redis store crashed the API at startup, and an outage made every request hang |
 
 More detail: [booking concurrency and benchmarks](docs/booking-concurrency.md) · [failure modes of the outbox, waitlist and payments](docs/reliability.md)
 
@@ -153,11 +154,11 @@ More detail: [booking concurrency and benchmarks](docs/booking-concurrency.md) �
 
 | Suite | What | Count |
 | --- | --- | ---: |
-| Unit | Pure helpers, the endpoint/validation layer, error mapping | 13 |
+| Unit | Pure helpers, the endpoint/validation layer, error mapping, the rate limiter with a refusing, offline or silent Redis | 17 |
 | Integration (real PostgreSQL) | Concurrency per strategy, waitlist, outbox, payments + reconciliation, auth, API rules, staff CRUD | 106 |
 | E2E (Playwright, real browser) | Book a class; join the waitlist and get promoted; leave the waitlist; buy a membership through VNPay (IPN simulated with a valid signature) | 4 |
 
-Coverage of the backend suite: about 91% of lines, 87% of functions, 73% of branches; CI fails
+Coverage of the backend suite: about 92% of lines, 89% of functions, 73% of branches; CI fails
 below 85/85/70. CI also fails if the migrations and `schema.prisma` drift apart.
 
 ```bash
@@ -208,7 +209,7 @@ cd ../backend && DATABASE_URL="postgresql://user:pass@localhost:5432/gym_bench?c
    npm run dev:worker   # in a second terminal: e-mails, reconciliation, expiry
    ```
    The seed creates `staff@gym.local` / `member@gym.local` with the passwords in `SEED_STAFF_PASSWORD` / `SEED_MEMBER_PASSWORD` (local defaults in `scripts/seed.ts`).
-4. Admin console on `http://localhost:5173`:
+4. Admin console on `http://localhost:5173/admin/` (the app is served under `/admin`, so the bare `:5173` URL renders a blank page):
    ```bash
    cd frontend-admin && npm ci && VITE_API_BASE_URL=http://localhost:3000/api npm run dev
    ```
@@ -249,6 +250,11 @@ For anyone who used the 1.x API:
 - `PATCH /api/bookings/:id` is gone: staff cancel with `POST /api/bookings/:id/cancel` or delete. Both keep the seat counter and the waitlist right.
 - `GET /api/members?count=active` moved to `GET /api/members/active-count`.
 - Invalid input returns `400 { code: "VALIDATION_ERROR", details: [{ path, message }] }`.
+
+Upgrading a 1.x deployment:
+
+- Migration `20261105100000` turns the status columns into enums, so a 1.x image can no longer write to the database once it has run (every login fails). Take a `pg_dump` before deploying 2.0: rolling back means restoring it. Images are only tagged `latest`.
+- 2.0 adds the `worker` service (membership expiry, outbox e-mails, VNPay reconciliation); without it memberships never expire. The deploy workflow now copies `docker-compose.prod.yml` and `nginx.conf` to the server before `docker compose up`.
 
 ## Roadmap
 
