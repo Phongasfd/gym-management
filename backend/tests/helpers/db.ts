@@ -14,7 +14,9 @@ function assertTestDatabase() {
 export async function resetDb() {
   assertTestDatabase();
   await prisma.$executeRawUnsafe(
-    'TRUNCATE "OutboxEvent", "Booking", "Checkin", "Subscription", "RefreshToken", "Class", "Package", "Member", "User" CASCADE',
+    'TRUNCATE "MemberInsight", "AiMessage", "AiConversation", "MealPlanItem", "MealPlan", "WorkoutLogSet", "WorkoutLog", ' +
+      '"WorkoutPlanExercise", "WorkoutPlanDay", "WorkoutPlan", "BodyMetric", "MemberProfile", "Exercise", "AiUsageLog", ' +
+      '"OutboxEvent", "Booking", "Checkin", "Subscription", "RefreshToken", "Class", "Package", "Member", "User" CASCADE',
   );
 }
 

@@ -28,6 +28,8 @@ A full-stack platform for running a gym: an **admin console** for staff and a **
 | **A payment must activate exactly one membership** | Only the signed server-to-server IPN activates (never the browser redirect). HMAC-SHA512 signature, amount and state are checked under a row lock; replays return `02`. | Tests sign real IPN payloads; tampered signature, wrong amount, replays covered. |
 | **One schema for validation, types and docs** | Each endpoint is declared once with zod schemas and an auth level; that declaration validates the request, types the handler, and generates the OpenAPI document at `/api-docs`. | All 40+ routes in [`routes/index.ts`](backend/src/routes/index.ts). |
 | **Sessions that survive XSS and token theft** | `httpOnly` cookies: a 15-minute JWT plus a rotating refresh token stored only as a SHA-256 hash; replaying a rotated token revokes every session. Signed double-submit CSRF token. | Tests for rotation, reuse detection, CSRF, reset-code expiry and single use. |
+| **An AI coach that knows the gym and acts safely** | OpenAI tool calling over live data (packages, classes with free seats, the member's membership, bookings, progress); booking/cancelling goes through the same `bookingService` and needs an explicit confirmation. Plans use Structured Outputs where `exercise_id` is an enum of library ids; calories/macros, churn features and progress stats are computed on the server, the model only interprets them. Every request is quota-checked and costed in `AiUsageLog`. | [AI features](docs/ai-features.md); integration tests with a scripted OpenAI fake check the seat counter after a chat booking, the tool exchange replayed from stored history, quotas and upstream failures. |
+| **More domain, same guarantees** | 14 new tables (fitness profile, body metrics, exercise library, workout plans/days/exercises, workout logs/sets, meal plans/items, AI conversations/messages, usage log, churn insights) with CHECK constraints and a partial unique index (one active plan per member). | Migration applied and checked for drift against `schema.prisma`; tests hit the constraints directly. |
 
 ## Screenshots
 
@@ -74,6 +76,13 @@ desk sales of memberships; change password (revokes other sessions).
 password with an e-mailed 6-digit code (stored hashed, single use, 10 minutes); browse upcoming
 classes, book, **join the waitlist when full and see your position**, cancel or leave the
 waitlist; buy a membership through VNPay; AI advisor chat.
+
+**AI coach and fitness tracking** ([details](docs/ai-features.md)): fitness profile and body
+metrics; exercise library; AI-generated workout plans (activate one at a time) and meal plans
+within server-computed calorie/macro targets; workout logging with sets; AI progress report; a
+chatbot that answers from live data, remembers conversations and can book or cancel classes after
+confirmation. Staff get AI churn-risk insights with a drafted outreach message per member and an
+OpenAI usage/cost report.
 
 ## Key flows
 
@@ -148,14 +157,14 @@ sequenceDiagram
 | Keyset (cursor) pagination | Stable under inserts, O(page) | No "jump to page 7"; the members overview keeps offset pages for the admin table |
 | Rate limits fail open | Redis down, restarting or refusing the connection (wrong password) must not take the API with it: each Redis call waits at most 1 s, then the request is served without rate limiting | No rate limiting while Redis is unavailable. Before, an unhandled rejection from the Redis store crashed the API at startup, and an outage made every request hang |
 
-More detail: [booking concurrency and benchmarks](docs/booking-concurrency.md) · [failure modes of the outbox, waitlist and payments](docs/reliability.md)
+More detail: [booking concurrency and benchmarks](docs/booking-concurrency.md) · [failure modes of the outbox, waitlist and payments](docs/reliability.md) · [AI coach and fitness domain](docs/ai-features.md)
 
 ## Testing
 
 | Suite | What | Count |
 | --- | --- | ---: |
-| Unit | Pure helpers, the endpoint/validation layer, error mapping, the rate limiter with a refusing, offline or silent Redis | 17 |
-| Integration (real PostgreSQL) | Concurrency per strategy, waitlist, outbox, payments + reconciliation, auth, API rules, staff CRUD | 106 |
+| Unit | Pure helpers, the endpoint/validation layer, error mapping, the rate limiter with a refusing, offline or silent Redis, nutrition/TDEE maths, churn heuristic, AI plan normalisation and schemas | 33 |
+| Integration (real PostgreSQL) | Concurrency per strategy, waitlist, outbox, payments + reconciliation, auth, API rules, staff CRUD, AI tool calling/Structured Outputs + fitness domain | 126 |
 | E2E (Playwright, real browser) | Book a class; join the waitlist and get promoted; leave the waitlist; buy a membership through VNPay (IPN simulated with a valid signature) | 4 |
 
 Coverage of the backend suite: about 92% of lines, 89% of functions, 73% of branches; CI fails
@@ -201,7 +210,8 @@ cd ../backend && DATABASE_URL="postgresql://user:pass@localhost:5432/gym_bench?c
    | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL` | Google OAuth (optional) |
    | `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `FACEBOOK_CALLBACK_URL` | Facebook OAuth (optional) |
    | `EMAIL_SERVICE`, `EMAIL_USER`, `EMAIL_PASSWORD` | e-mails (skipped and logged when unset) |
-   | `OPENAI_API_KEY` | AI advisor |
+   | `OPENAI_API_KEY` | AI features (they return `503 AI_NOT_CONFIGURED` without it; everything else works) |
+   | `OPENAI_MODEL`, `AI_MEMBER_DAILY_LIMIT`, `AI_MAX_TOOL_ROUNDS`, `AI_CHURN_JOB_INTERVAL_HOURS` | optional: `gpt-4o-mini`, 30, 4, 0 (off); see [AI features](docs/ai-features.md#configuration) |
 3. Migrate, add demo data, and run the API on `http://localhost:3000` (docs at `/api-docs`) and the worker:
    ```bash
    cd backend && npm ci && npx prisma migrate deploy && npm run db:seed
