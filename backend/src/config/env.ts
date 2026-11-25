@@ -65,4 +65,15 @@ export const env = {
     reconcileIntervalMs: int('WORKER_RECONCILE_INTERVAL_MS', 60_000),
     outboxMaxAttempts: int('OUTBOX_MAX_ATTEMPTS', 8),
   },
+  ai: {
+    apiKey: process.env.OPENAI_API_KEY || undefined,
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    timeoutMs: int('OPENAI_TIMEOUT_MS', 30_000),
+    // OpenAI requests per member per UTC day, all features combined. 0 = unlimited.
+    memberDailyLimit: int('AI_MEMBER_DAILY_LIMIT', 30),
+    // Tool-calling rounds the chatbot may run for one user message.
+    maxToolRounds: int('AI_MAX_TOOL_ROUNDS', 4),
+    // Worker job that scores churn risk of active members. 0 = disabled.
+    churnJobIntervalHours: int('AI_CHURN_JOB_INTERVAL_HOURS', 0),
+  },
 };

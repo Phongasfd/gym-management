@@ -88,6 +88,16 @@ model Member {
   subscriptions Subscription[]
   checkins      Checkin[]
   bookings      Booking[]
+
+  // Fitness domain + AI
+  profile          MemberProfile?
+  body_metrics     BodyMetric[]
+  workout_plans    WorkoutPlan[]
+  workout_logs     WorkoutLog[]
+  meal_plans       MealPlan[]
+  ai_conversations AiConversation[]
+  ai_usage         AiUsageLog[]
+  insights         MemberInsight[]
 }
 
 // A subscription is also the payment order: its id (without dashes) is the VNPay vnp_TxnRef.
@@ -201,4 +211,337 @@ model OutboxEvent {
   processed_at DateTime?
 
   @@index([status, available_at])
+}
+
+// ===================================================================================
+// Fitness domain + AI coach. CHECK constraints and the "one active plan per member"
+// partial unique index live in migration 20261125090000_fitness_domain_and_ai.
+// ===================================================================================
+
+enum FitnessGoal {
+  lose_fat
+  build_muscle
+  improve_endurance
+  general_health
+}
+
+enum ExperienceLevel {
+  beginner
+  intermediate
+  advanced
+}
+
+enum ActivityLevel {
+  sedentary
+  light
+  moderate
+  active
+  very_active
+}
+
+enum MuscleGroup {
+  chest
+  back
+  legs
+  shoulders
+  arms
+  core
+  full_body
+  cardio
+}
+
+enum PlanStatus {
+  draft
+  active
+  archived
+}
+
+enum PlanSource {
+  ai
+  coach
+}
+
+enum MealType {
+  breakfast
+  lunch
+  dinner
+  snack
+}
+
+enum AiFeature {
+  chat
+  workout_plan
+  meal_plan
+  progress_report
+  churn_insight
+}
+
+enum AiCallStatus {
+  success
+  error
+}
+
+enum AiMessageRole {
+  user
+  assistant
+  tool
+}
+
+enum ChurnRisk {
+  low
+  medium
+  high
+}
+
+// 1-1 with Member: the inputs every AI feature personalises on.
+model MemberProfile {
+  member_id              String          @id
+  height_cm              Float?
+  target_weight_kg       Float?
+  goal                   FitnessGoal     @default(general_health)
+  experience_level       ExperienceLevel @default(beginner)
+  activity_level         ActivityLevel   @default(moderate)
+  training_days_per_week Int             @default(3)
+  session_minutes        Int             @default(60)
+  injuries               String?
+  dietary_restrictions   String?
+  created_at             DateTime        @default(now())
+  updated_at             DateTime        @updatedAt
+
+  member Member @relation(fields: [member_id], references: [id], onDelete: Cascade)
+}
+
+// Time series of body measurements.
+model BodyMetric {
+  id             String   @id @default(uuid())
+  member_id      String
+  measured_at    DateTime @default(now())
+  weight_kg      Float
+  body_fat_pct   Float?
+  muscle_mass_kg Float?
+  waist_cm       Float?
+  resting_hr     Int?
+  note           String?
+  created_at     DateTime @default(now())
+
+  member Member @relation(fields: [member_id], references: [id], onDelete: Cascade)
+
+  @@index([member_id, measured_at])
+}
+
+// Exercise library. AI-generated plans may only reference rows from here.
+model Exercise {
+  id           String          @id @default(uuid())
+  name         String          @unique
+  muscle_group MuscleGroup
+  equipment    String?
+  difficulty   ExperienceLevel
+  instructions String?
+  is_active    Boolean         @default(true)
+  created_at   DateTime        @default(now())
+
+  plan_items WorkoutPlanExercise[]
+  log_sets   WorkoutLogSet[]
+}
+
+model WorkoutPlan {
+  id            String      @id @default(uuid())
+  member_id     String
+  title         String
+  goal          FitnessGoal
+  weeks         Int
+  days_per_week Int
+  status        PlanStatus  @default(draft)
+  source        PlanSource
+  notes         String?
+  ai_usage_id   String?
+  activated_at  DateTime?
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+
+  member   Member           @relation(fields: [member_id], references: [id], onDelete: Cascade)
+  ai_usage AiUsageLog?      @relation(fields: [ai_usage_id], references: [id], onDelete: SetNull)
+  days     WorkoutPlanDay[]
+
+  @@index([member_id, status])
+}
+
+model WorkoutPlanDay {
+  id        String  @id @default(uuid())
+  plan_id   String
+  day_index Int
+  title     String
+  focus     String?
+
+  plan      WorkoutPlan           @relation(fields: [plan_id], references: [id], onDelete: Cascade)
+  exercises WorkoutPlanExercise[]
+  logs      WorkoutLog[]
+
+  @@unique([plan_id, day_index])
+}
+
+model WorkoutPlanExercise {
+  id           String  @id @default(uuid())
+  plan_day_id  String
+  exercise_id  String
+  position     Int
+  sets         Int
+  reps         String // "8-12", "30s", ...
+  rest_seconds Int
+  notes        String?
+
+  plan_day WorkoutPlanDay @relation(fields: [plan_day_id], references: [id], onDelete: Cascade)
+  exercise Exercise       @relation(fields: [exercise_id], references: [id], onDelete: Restrict)
+
+  @@unique([plan_day_id, position])
+  @@index([exercise_id])
+}
+
+// What the member actually did.
+model WorkoutLog {
+  id               String   @id @default(uuid())
+  member_id        String
+  plan_day_id      String?
+  performed_at     DateTime @default(now())
+  duration_minutes Int?
+  perceived_effort Int? // RPE 1-10
+  notes            String?
+  created_at       DateTime @default(now())
+
+  member   Member          @relation(fields: [member_id], references: [id], onDelete: Cascade)
+  plan_day WorkoutPlanDay? @relation(fields: [plan_day_id], references: [id], onDelete: SetNull)
+  sets     WorkoutLogSet[]
+
+  @@index([member_id, performed_at])
+}
+
+model WorkoutLogSet {
+  id          String @id @default(uuid())
+  log_id      String
+  exercise_id String
+  set_number  Int
+  reps        Int
+  weight_kg   Float?
+
+  log      WorkoutLog @relation(fields: [log_id], references: [id], onDelete: Cascade)
+  exercise Exercise   @relation(fields: [exercise_id], references: [id], onDelete: Restrict)
+
+  @@unique([log_id, exercise_id, set_number])
+  @@index([exercise_id])
+}
+
+model MealPlan {
+  id              String     @id @default(uuid())
+  member_id       String
+  title           String
+  days            Int
+  target_calories Int
+  protein_g       Int
+  carbs_g         Int
+  fat_g           Int
+  status          PlanStatus @default(draft)
+  source          PlanSource
+  notes           String?
+  ai_usage_id     String?
+  created_at      DateTime   @default(now())
+
+  member   Member         @relation(fields: [member_id], references: [id], onDelete: Cascade)
+  ai_usage AiUsageLog?    @relation(fields: [ai_usage_id], references: [id], onDelete: SetNull)
+  items    MealPlanItem[]
+
+  @@index([member_id, created_at])
+}
+
+model MealPlanItem {
+  id           String   @id @default(uuid())
+  meal_plan_id String
+  day_index    Int
+  meal_type    MealType
+  name         String
+  description  String?
+  calories     Int
+  protein_g    Float
+  carbs_g      Float
+  fat_g        Float
+
+  meal_plan MealPlan @relation(fields: [meal_plan_id], references: [id], onDelete: Cascade)
+
+  @@index([meal_plan_id, day_index])
+}
+
+// Persistent chat history for signed-in members (anonymous chats are stateless).
+model AiConversation {
+  id         String   @id @default(uuid())
+  member_id  String
+  title      String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  member   Member      @relation(fields: [member_id], references: [id], onDelete: Cascade)
+  messages AiMessage[]
+
+  @@index([member_id, updated_at])
+}
+
+model AiMessage {
+  id              String        @id @default(uuid())
+  conversation_id String
+  role            AiMessageRole
+  content         String
+  // assistant turns that called tools keep the raw tool_calls; tool turns keep the call id they answer
+  tool_calls      Json?
+  tool_call_id    String?
+  tool_name       String?
+  created_at      DateTime      @default(now())
+
+  conversation AiConversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+
+  @@index([conversation_id, created_at])
+}
+
+// One row per OpenAI request: cost accounting, latency, per-member daily quota.
+model AiUsageLog {
+  id                String       @id @default(uuid())
+  feature           AiFeature
+  model             String
+  member_id         String?
+  staff_id          String?
+  prompt_tokens     Int          @default(0)
+  completion_tokens Int          @default(0)
+  cost_usd          Decimal      @default(0) @db.Decimal(12, 6)
+  latency_ms        Int          @default(0)
+  status            AiCallStatus
+  error             String?
+  created_at        DateTime     @default(now())
+
+  member Member? @relation(fields: [member_id], references: [id], onDelete: SetNull)
+
+  workout_plans WorkoutPlan[]
+  meal_plans    MealPlan[]
+  insights      MemberInsight[]
+
+  @@index([member_id, created_at])
+  @@index([feature, created_at])
+}
+
+// AI churn-risk analysis of a member, for staff.
+model MemberInsight {
+  id                 String    @id @default(uuid())
+  member_id          String
+  risk_level         ChurnRisk
+  risk_score         Int // 0-100
+  baseline_score     Int // deterministic heuristic, kept to compare with the model
+  features           Json
+  summary            String
+  recommended_action String
+  outreach_message   String
+  ai_usage_id        String?
+  staff_id           String?
+  created_at         DateTime  @default(now())
+
+  member   Member      @relation(fields: [member_id], references: [id], onDelete: Cascade)
+  ai_usage AiUsageLog? @relation(fields: [ai_usage_id], references: [id], onDelete: SetNull)
+
+  @@index([member_id, created_at])
+  @@index([risk_level, created_at])
 }

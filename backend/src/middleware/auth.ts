@@ -35,6 +35,17 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
   next();
 }
 
+// For public endpoints that do more for signed-in users: sets req.auth when a valid token is
+// present, and never rejects the request.
+export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+  const token: unknown = req.cookies?.access_token;
+  if (typeof token === 'string' && token !== '') {
+    const auth = decode(token);
+    if (auth) req.auth = auth;
+  }
+  next();
+}
+
 export function staffMiddleware(req: Request, res: Response, next: NextFunction) {
   if (req.auth?.userType !== 'staff') {
     res.status(403).json({ message: 'Access denied' });

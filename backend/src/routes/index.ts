@@ -6,6 +6,7 @@ import * as auth from '../controllers/authControllers';
 import * as bookings from '../controllers/bookingControllers';
 import * as checkins from '../controllers/checkinControllers';
 import * as classes from '../controllers/classControllers';
+import * as fitness from '../controllers/fitnessControllers';
 import * as members from '../controllers/memberControllers';
 import * as packages from '../controllers/packageControllers';
 import * as staff from '../controllers/staffControllers';
@@ -95,7 +96,36 @@ const vnpayRoutes = new ApiRouter('/api/vnpay', 'Payments')
   .get('/check-payment-vnpay', vnpay.paymentReturn)
   .get('/vnpay-ipn', vnpay.paymentIpn);
 
-const aiRoutes = new ApiRouter('/api/ai', 'AI').post('/chat', ai.chat);
+const aiRoutes = new ApiRouter('/api/ai', 'AI')
+  .post('/chat', ai.chat)
+  .get('/conversations', ai.listConversations)
+  .get('/conversations/:id', ai.getConversation)
+  .delete('/conversations/:id', ai.deleteConversation)
+  .post('/workout-plans/generate', ai.generateWorkout)
+  .post('/meal-plans/generate', ai.generateMeals)
+  .post('/progress-report', ai.progressReport)
+  .post('/insights/churn', ai.analyzeChurn)
+  .get('/insights', ai.listInsights)
+  .get('/usage', ai.usage);
+
+const fitnessRoutes = new ApiRouter('/api/fitness', 'Fitness')
+  .get('/profile', fitness.getProfile)
+  .put('/profile', fitness.upsertProfile)
+  .get('/metrics', fitness.listMetrics)
+  .post('/metrics', fitness.addMetric)
+  .delete('/metrics/:id', fitness.deleteMetric)
+  .get('/exercises', fitness.listExercises)
+  .post('/exercises', fitness.createExercise)
+  .patch('/exercises/:id', fitness.updateExercise)
+  .get('/workout-plans', fitness.listWorkoutPlans)
+  .get('/workout-plans/:id', fitness.getWorkoutPlan)
+  .post('/workout-plans/:id/activate', fitness.activateWorkoutPlan)
+  .post('/workout-plans/:id/archive', fitness.archiveWorkoutPlan)
+  .get('/workout-logs', fitness.listWorkoutLogs)
+  .post('/workout-logs', fitness.addWorkoutLog)
+  .get('/meal-plans', fitness.listMealPlans)
+  .get('/meal-plans/:id', fitness.getMealPlan)
+  .get('/members/:id', fitness.memberFitnessOverview);
 
 export const apiRouter = Router()
   .use('/api/auth', authRoutes.router)
@@ -107,4 +137,5 @@ export const apiRouter = Router()
   .use('/api/classes', classRoutes.router)
   .use('/api/bookings', bookingRoutes.router)
   .use('/api/vnpay', vnpayRoutes.router)
-  .use('/api/ai', aiRoutes.router);
+  .use('/api/ai', aiRoutes.router)
+  .use('/api/fitness', fitnessRoutes.router);
